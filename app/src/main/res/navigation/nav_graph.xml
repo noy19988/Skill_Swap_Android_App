@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     app:startDestination="@id/loginFragment">
 
+    <!-- Login Fragment -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.skill_swap_app.view.LoginFragment"
@@ -17,15 +17,74 @@
             app:destination="@id/feedFragment" />
     </fragment>
 
+    <!-- Register Fragment -->
     <fragment
         android:id="@+id/registerFragment"
         android:name="com.example.skill_swap_app.view.RegisterFragment"
         android:label="Register"
         tools:layout="@layout/fragment_register" />
 
+    <!-- Feed Fragment -->
     <fragment
         android:id="@+id/feedFragment"
         android:name="com.example.skill_swap_app.view.FeedFragment"
         android:label="Feed"
-        tools:layout="@layout/fragment_feed" />
+        tools:layout="@layout/fragment_feed">
+        <action
+            android:id="@+id/action_feedFragment_to_menuFragment"
+            app:destination="@id/menuFragment" />
+        <action
+            android:id="@+id/action_feedFragment_to_addPostFragment"
+            app:destination="@id/addPostFragment" /> <!-- הוספתי את המעבר ל-AddPostFragment -->
+    </fragment>
+
+    <!-- Menu Fragment -->
+    <fragment
+        android:id="@+id/menuFragment"
+        android:name="com.example.skill_swap_app.view.MenuFragment"
+        android:label="Menu"
+        tools:layout="@layout/fragment_menu" />
+
+    <!-- AddPost Fragment -->
+    <fragment
+        android:id="@+id/addPostFragment"
+        android:name="com.example.skill_swap_app.view.AddPostFragment"
+        android:label="Add Post"
+        tools:layout="@layout/fragment_add_post">
+        <action
+            android:id="@+id/action_addPostFragment_to_feedFragment"
+            app:destination="@id/feedFragment" /> <!-- הוספתי את המעבר ל-FeedFragment -->
+    </fragment>
+
+    <!-- User Profile Fragment -->
+    <fragment
+        android:id="@+id/userProfileFragment"
+        android:name="com.example.skill_swap_app.view.ProfileFragment"
+        android:label="User Profile"
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profileFragment_to_loginFragment"
+            app:destination="@id/loginFragment" /> <!-- המעבר ל-loginFragment -->
+    </fragment>
+
+    <!-- My Posts Fragment -->
+    <fragment
+        android:id="@+id/myPostsFragment"
+        android:name="com.example.skill_swap_app.view.MyPostsFragment"
+        android:label="My Posts"
+        tools:layout="@layout/fragment_my_posts" />
+
+    <!-- YouTube Recommendations Fragment -->
+    <fragment
+        android:id="@+id/youtubeRecommendationsFragment"
+        android:name="com.example.skill_swap_app.view.YouTubeRecommendationsFragment"
+        android:label="YouTube Recommendations"
+        tools:layout="@layout/fragment_you_tube_recommendations" />
+
+    <!-- Favorites Fragment -->
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="com.example.skill_swap_app.view.FavoritesFragment"
+        android:label="Favorites"
+        tools:layout="@layout/fragment_favorites" />
 </navigation>

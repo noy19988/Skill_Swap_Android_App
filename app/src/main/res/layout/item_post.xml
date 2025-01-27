@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <!-- תיאור הפוסט -->
+    <TextView
+        android:id="@+id/descriptionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Description"
+        android:layout_margin="8dp" />
+
+    <!-- רמת מיומנות -->
+    <TextView
+        android:id="@+id/skillLevelTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Skill Level"
+        android:layout_margin="8dp" />
+
+    <!-- מספר טלפון -->
+    <TextView
+        android:id="@+id/phoneNumberTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Phone Number"
+        android:layout_margin="8dp" />
+
+    <!-- תמונה -->
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp" />
+</LinearLayout>

@@ -1,13 +1,32 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/list"
-    android:name="com.example.skill_swap_app.view.FeedFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
-    app:layoutManager="LinearLayoutManager"
-    tools:context=".view.FeedFragment"
-    tools:listitem="@layout/fragment_feed" />
+    android:orientation="vertical">
+
+    <!-- מיכל ל-MenuFragment -->
+    <FrameLayout
+        android:id="@+id/menu_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="655dp" />
+
+    <!-- כפתור להוספת פוסט -->
+    <ImageButton
+        android:id="@+id/add_post_button"
+        android:layout_width="41dp"
+        android:layout_height="41dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Add Post"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_add_button"
+        android:visibility="visible"
+        tools:visibility="visible" />
+</LinearLayout>
