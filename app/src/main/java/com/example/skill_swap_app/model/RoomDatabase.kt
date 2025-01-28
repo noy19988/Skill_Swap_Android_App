@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [User::class], version = 1)
+@Database(entities = [User::class], version = 2, exportSchema = false)  // שיניתי את הגרסה ל-2
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
@@ -19,7 +19,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "skill_swap_db"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()  // אם הסכימה השתנתה, נמחק את הנתונים הישנים
+                    .build()
                 INSTANCE = instance
                 instance
             }

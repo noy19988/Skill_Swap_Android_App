@@ -4,20 +4,14 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
-
-import com.example.skill_swap_app.view.placeholder.PlaceholderContent.PlaceholderItem
+import com.example.skill_swap_app.model.Post
 import com.example.skill_swap_app.databinding.FragmentFavoritesBinding
 
-/**
- * [RecyclerView.Adapter] that can display a [PlaceholderItem].
- * TODO: Replace the implementation with code for your data type.
- */
 class MyItemRecyclerViewAdapter_favorites(
-    private val values: List<PlaceholderItem>
+    private val values: List<Post>  // רשימה של פוסטים אהובים
 ) : RecyclerView.Adapter<MyItemRecyclerViewAdapter_favorites.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-
         return ViewHolder(
             FragmentFavoritesBinding.inflate(
                 LayoutInflater.from(parent.context),
@@ -25,25 +19,21 @@ class MyItemRecyclerViewAdapter_favorites(
                 false
             )
         )
-
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = values[position]
-        holder.idView.text = item.id
-        holder.contentView.text = item.content
+        holder.descriptionTextView.text = item.description
+        holder.skillLevelTextView.text = item.skillLevel
+        holder.phoneNumberTextView.text = item.phoneNumber
     }
 
     override fun getItemCount(): Int = values.size
 
     inner class ViewHolder(binding: FragmentFavoritesBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        val idView: TextView = binding.itemNumber
-        val contentView: TextView = binding.content
-
-        override fun toString(): String {
-            return super.toString() + " '" + contentView.text + "'"
-        }
+        val descriptionTextView: TextView = binding.descriptionTextView
+        val skillLevelTextView: TextView = binding.skillLevelTextView
+        val phoneNumberTextView: TextView = binding.phoneNumberTextView
     }
-
 }

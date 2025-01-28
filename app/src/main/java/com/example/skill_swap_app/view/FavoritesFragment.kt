@@ -1,20 +1,22 @@
 package com.example.skill_swap_app.view
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.adapter.MyItemRecyclerViewAdapter_favorites
-import com.example.skill_swap_app.view.placeholder.PlaceholderContent
+import com.example.skill_swap_app.model.Post
+import com.example.skill_swap_app.model.PostDatabase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-/**
- * A fragment representing a list of Items.
- */
 class FavoritesFragment : Fragment() {
 
     private var columnCount = 1
@@ -40,10 +42,24 @@ class FavoritesFragment : Fragment() {
                     columnCount <= 1 -> LinearLayoutManager(context)
                     else -> GridLayoutManager(context, columnCount)
                 }
-                adapter = MyItemRecyclerViewAdapter_favorites(PlaceholderContent.ITEMS)
+                loadFavoritePosts { posts ->
+                    adapter = MyItemRecyclerViewAdapter_favorites(posts)
+                }
             }
         }
         return view
+    }
+
+    private fun loadFavoritePosts(callback: (List<Post>) -> Unit) {
+        lifecycleScope.launch {
+            // מבצע את הקריאה למסד הנתונים ב-Background thread
+            val posts = withContext(Dispatchers.IO) {
+                val db = PostDatabase.getDatabase(requireContext())
+                db.postDao().getFavoritePosts()  // קורא רק את הפוסטים האהובים
+            }
+            // עדכון ה-UI thread עם הפוסטים
+            callback(posts)
+        }
     }
 
     companion object {

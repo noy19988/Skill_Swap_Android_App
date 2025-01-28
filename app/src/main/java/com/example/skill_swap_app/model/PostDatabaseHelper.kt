@@ -4,9 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.skill_swap_app.model.Post
 
-@Database(entities = [Post::class], version = 1)
+@Database(entities = [Post::class], version = 2, exportSchema = false)  // שיניתי את הגרסה ל-2
 abstract class PostDatabase : RoomDatabase() {
     abstract fun postDao(): PostDao
 
@@ -21,7 +20,9 @@ abstract class PostDatabase : RoomDatabase() {
                     context.applicationContext,
                     PostDatabase::class.java,
                     "skill_swap_post_db"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()  // אם הסכימה השתנתה, נמחק את הנתונים הישנים
+                    .build()
                 INSTANCE = instance
                 instance
             }
