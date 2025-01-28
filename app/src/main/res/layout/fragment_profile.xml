@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -6,45 +5,97 @@
     android:padding="16dp"
     android:layout_marginTop="80dp"> <!-- מרווח למעלה מה-toolbar -->
 
-        <!-- תצוגה עבור שם המשתמש -->
-        <TextView
-            android:id="@+id/usernameTextView"
+        <!-- ProgressBar - יהיה מוצג בעת חיבור או תהליך ארוך -->
+        <ProgressBar
+            android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Username"
-            android:textSize="18sp"/>
+            android:visibility="gone" /> <!-- מתחיל ב-גולל (לא מוצג) -->
 
-        <!-- שדה עריכת שם משתמש -->
-        <EditText
-            android:id="@+id/usernameEditText"
+        <!-- Email - תצוגה בלבד (לא ניתן לערוך) -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter Username"
-            android:enabled="false"
-            android:textSize="16sp"/>
+            android:orientation="horizontal">
 
-        <!-- תצוגה עבור מייל -->
-        <TextView
-            android:id="@+id/emailTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Email"
-            android:textSize="18sp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="Email:  "
+                    android:textSize="16sp" />
 
-        <!-- תצוגה עבור טלפון -->
-        <TextView
-            android:id="@+id/phoneLabelTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Phone Number"
-            android:textSize="18sp"/>
+                <TextView
+                    android:id="@+id/emailTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="16sp" />
+        </LinearLayout>
 
-        <EditText
-            android:id="@+id/phoneTextView"
+        <!-- Username - תצוגה של טקסט בהתחלה ואז אפשרות עריכה אחרי לחיצה על Edit -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter Phone Number"
-            android:textSize="16sp" />
+            android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0"
+                    android:text="Username:  "
+                    android:textSize="16sp" />
+
+                <!-- בהתחלה, זה TextView, לאחר Edit נהפוך אותו ל-EditText -->
+                <TextView
+                    android:id="@+id/usernameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:layout_weight="1" />
+
+                <EditText
+                    android:id="@+id/usernameEditText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter Username"
+                    android:textSize="16sp"
+                    android:layout_weight="1"
+                    android:visibility="gone"
+                    android:enabled="true"/> <!-- נסתר בהתחלה -->
+        </LinearLayout>
+
+        <!-- Phone - תצוגה של טקסט בהתחלה ואז אפשרות עריכה אחרי לחיצה על Edit -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="Phone:  "
+                    android:textSize="16sp" />
+
+                <!-- בהתחלה, זה TextView, לאחר Edit נהפוך אותו ל-EditText -->
+                <TextView
+                    android:id="@+id/phoneTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:layout_weight="1" />
+
+                <EditText
+                    android:id="@+id/phoneEditText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Enter Phone Number"
+                    android:textSize="16sp"
+                    android:visibility="gone"
+                    android:enabled="true"/> <!-- נסתר בהתחלה -->
+        </LinearLayout>
 
         <!-- כפתור Edit – מאפשר עריכה -->
         <Button
@@ -53,18 +104,25 @@
             android:layout_height="wrap_content"
             android:text="Edit" />
 
-        <!-- כפתור עדכון -->
+        <!-- כפתור Update – ייחשף רק לאחר לחיצה על Edit -->
         <Button
             android:id="@+id/update_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Update"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
-        <!-- כפתור מחיקה -->
+        <!-- כפתור Delete Account -->
         <Button
             android:id="@+id/delete_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Delete Account" />
+
+        <!-- כפתור Logout -->
+        <Button
+            android:id="@+id/logout_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Logout" />
 </LinearLayout>

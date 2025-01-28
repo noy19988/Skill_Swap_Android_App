@@ -11,5 +11,6 @@ data class Post(
     val skillLevel: String,        // רמת מיומנות (סביר, טוב, מומחה)
     val phoneNumber: String,       // מספר הטלפון של המשתמש
     val imageUrl: String, // כתובת התמונה (או נתיב התמונה)
-    var isFavorite: Boolean = false
+    var isFavorite: Boolean = false,
+    val userId: Int  // קשר עם המשתמש
 )

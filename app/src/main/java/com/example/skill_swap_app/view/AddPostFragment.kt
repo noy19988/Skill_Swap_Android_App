@@ -1,9 +1,11 @@
 package com.example.skill_swap_app.view
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,10 +15,12 @@ import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.model.Post
 import com.example.skill_swap_app.model.PostDatabase
+import com.example.skill_swap_app.model.AppDatabase
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -33,7 +37,6 @@ class AddPostFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // הוספת MenuFragment
         val menuFragment = MenuFragment()
         childFragmentManager.beginTransaction()
             .replace(R.id.menu_fragment_container, menuFragment)
@@ -53,56 +56,73 @@ class AddPostFragment : Fragment() {
         uploadImageButton = view.findViewById(R.id.upload_image_button)
         selectedImageView = view.findViewById(R.id.selected_image_view)
 
-        // הגדרת כפתור העלאת התמונה
         uploadImageButton.setOnClickListener {
             openImagePicker()
         }
 
-        // כפתור לשליחת הפוסט
         postButton.setOnClickListener {
             val description = descriptionEditText.text.toString()
             val skillLevel = skillLevelSpinner.selectedItem.toString()
             val phoneNumber = phoneNumberEditText.text.toString()
 
             if (description.isNotEmpty() && phoneNumber.isNotEmpty()) {
-                // במקרה הזה, אם התמונה לא נבחרה, אנחנו לא נשלח כתובת התמונה, אלא ניתן כתובת דמה
-                val imageUrl = selectedImageUri?.toString() ?: "image_url"  // תוכל להחיל את הכתובת של התמונה כאן
+                val imageUrl = selectedImageUri?.toString() ?: "image_url"
 
-                val post = Post(description = description, skillLevel = skillLevel, phoneNumber = phoneNumber, imageUrl = imageUrl)
+                val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+                val userEmail = sharedPreferences.getString("user_email", null)
 
-                // יצירת פוסט במסד נתונים
-                insertPost(post)
+                if (!userEmail.isNullOrEmpty()) {
+                    lifecycleScope.launch {
+                        val db = AppDatabase.getDatabase(requireContext())
+                        val user = db.userDao().getUserByEmail(userEmail)
+                        var userId = 0
+                        user?.let {
+                            userId = it.id
+                            Log.d("AddPostFragment", "User ID: $userId") // לוג לצפייה ב-userId
 
-                Toast.makeText(requireContext(), "Post created successfully", Toast.LENGTH_SHORT).show()
+                            // יצירת הפוסט עם ה-userId
+                            val post = Post(
+                                description = description,
+                                skillLevel = skillLevel,
+                                phoneNumber = phoneNumber,
+                                imageUrl = imageUrl,
+                                userId = userId
+                            )
 
-                // ניווט חזרה ל-FeedFragment
-                findNavController().navigate(R.id.action_addPostFragment_to_feedFragment)
+                            insertPost(post)
+
+                            Toast.makeText(requireContext(), "Post created successfully", Toast.LENGTH_SHORT).show()
+                            findNavController().navigate(R.id.action_addPostFragment_to_feedFragment)
+                        }
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
             }
         }
 
+
+
         return view
     }
 
-    // פתיחת file explorer לבחור תמונה
     private fun openImagePicker() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
         startActivityForResult(intent, IMAGE_PICKER_REQUEST_CODE)
     }
 
-    // קבלה של התמונה שנבחרה והצגת התמונה ב-ImageView
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == IMAGE_PICKER_REQUEST_CODE) {
-            selectedImageUri = data?.data // קבלת ה-URI של התמונה
-            selectedImageView.setImageURI(selectedImageUri) // הצגת התמונה ב-ImageView
+            selectedImageUri = data?.data
+            selectedImageView.setImageURI(selectedImageUri)
             Toast.makeText(requireContext(), "Image selected successfully", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // הוספת הפוסט למסד נתונים
     private fun insertPost(post: Post) {
         GlobalScope.launch {
             val db = PostDatabase.getDatabase(requireContext())

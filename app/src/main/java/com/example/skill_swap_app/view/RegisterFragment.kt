@@ -1,5 +1,6 @@
 package com.example.skill_swap_app.view
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -58,13 +59,20 @@ class RegisterFragment : Fragment() {
                                     val user = User(username = username, email = email, phone = phone)
                                     db.userDao().insertUser(user)
                                     Log.d("RegisterFragment", "User saved to Room: $user")
+
+                                    // שמירת המייל ב-SharedPreferences
+                                    val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+                                    val editor = sharedPreferences.edit()
+                                    editor.putString("user_email", email)  // שמירת המייל של המשתמש
+                                    editor.apply()
+
                                 } catch (e: Exception) {
                                     Log.e("RegisterFragment", "Error saving user to Room", e)
                                 }
                             }
                             Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
                             Log.d("RegisterFragment", "User registered successfully in Firebase")
-                            requireActivity().onBackPressed()
+                            requireActivity().onBackPressed()  // חזרה אחורה אחרי הרשמה
                         } else {
                             Toast.makeText(context, "Registration failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                             Log.e("RegisterFragment", "Registration error", task.exception)

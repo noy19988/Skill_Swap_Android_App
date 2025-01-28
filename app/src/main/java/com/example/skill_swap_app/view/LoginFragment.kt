@@ -1,5 +1,6 @@
 package com.example.skill_swap_app.view
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -64,10 +65,15 @@ class LoginFragment : Fragment() {
                     .addOnCompleteListener { task ->
                         progressBar.visibility = View.GONE
                         if (task.isSuccessful) {
+                            // הוספת מייל של המשתמש ב-SharedPreferences אחרי התחברות מוצלחת
+                            val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+                            val editor = sharedPreferences.edit()
+                            editor.putString("user_email", email)
+                            editor.apply()
+
                             Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
                             Log.d("LoginFragment", "Firebase login successful")
                             findNavController().navigate(R.id.action_loginFragment_to_feedFragment)
-
                         } else {
                             Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                             Log.e("LoginFragment", "Login error", task.exception)

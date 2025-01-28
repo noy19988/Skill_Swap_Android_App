@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Post::class], version = 2, exportSchema = false)  // שיניתי את הגרסה ל-2
+@Database(entities = [Post::class], version = 3, exportSchema = false)  // עדכון גרסה ל-3
 abstract class PostDatabase : RoomDatabase() {
     abstract fun postDao(): PostDao
 

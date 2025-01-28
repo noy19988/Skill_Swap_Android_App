@@ -1,12 +1,14 @@
 package com.example.skill_swap_app.view
 
-
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -15,18 +17,21 @@ import androidx.navigation.fragment.findNavController
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.model.AppDatabase
 import com.example.skill_swap_app.model.User
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
 
     private lateinit var usernameTextView: TextView
-    private lateinit var emailTextView: TextView
-    private lateinit var phoneTextView: EditText
+    private lateinit var usernameEditText: EditText
+    private lateinit var phoneTextView: TextView
+    private lateinit var phoneEditText: EditText
     private lateinit var updateButton: Button
     private lateinit var editButton: Button
-    private lateinit var deleteButton: Button
+    private lateinit var progressBar: ProgressBar
     private lateinit var db: AppDatabase
+    private lateinit var emailTextView: TextView
 
     private var user: User? = null
 
@@ -36,97 +41,96 @@ class ProfileFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
 
+        // Initialize views
         usernameTextView = view.findViewById(R.id.usernameTextView)
-        emailTextView = view.findViewById(R.id.emailTextView)
+        usernameEditText = view.findViewById(R.id.usernameEditText)
         phoneTextView = view.findViewById(R.id.phoneTextView)
+        phoneEditText = view.findViewById(R.id.phoneEditText)
         updateButton = view.findViewById(R.id.update_button)
         editButton = view.findViewById(R.id.edit_button)
-        deleteButton = view.findViewById(R.id.delete_button)
+        emailTextView = view.findViewById(R.id.emailTextView)
+//        progressBar = view.findViewById(R.id.progressBar)
 
-        // מאתחלים את Room Database
         db = AppDatabase.getDatabase(requireContext())
-        // שליפת המידע מה-Room
-        getUserFromRoom()
-
-        // כפתור Edit – מאפשר עריכה של שם המשתמש והטלפון
-        editButton.setOnClickListener {
-            phoneTextView.isEnabled = true
-            usernameTextView.isEnabled = true
-            updateButton.visibility = View.VISIBLE // מציג את כפתור ה-Update
+        val deleteButton: Button = view.findViewById(R.id.delete_button)
+        deleteButton.setOnClickListener {
+            deleteUser() // קריאה לפונקציית מחיקת המשתמש
         }
 
-        // כפתור Update – מעדכן את המשתמש
-        updateButton.setOnClickListener {
-            val updatedPhone = phoneTextView.text.toString()
-            val updatedUsername = usernameTextView.text.toString()
+        val logoutButton: Button = view.findViewById(R.id.logout_button)
+        logoutButton.setOnClickListener {
+            logoutUser() // קריאה לפונקציה שתנתק את המשתמש ותחזיר אותו למסך ההתחברות
+        }
 
-            if (updatedPhone.isNotEmpty() && updatedUsername.isNotEmpty()) {
+        // Retrieve user info from SharedPreferences
+        val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+        val userEmail = sharedPreferences.getString("user_email", null)
+
+        // Retrieve user data from the database
+        getUserFromRoom(userEmail)
+
+        // Set Edit button click listener
+        editButton.setOnClickListener {
+            // Enable editing of username and phone
+            usernameTextView.visibility = View.GONE
+            phoneTextView.visibility = View.GONE
+            usernameEditText.visibility = View.VISIBLE
+            phoneEditText.visibility = View.VISIBLE
+            updateButton.visibility = View.VISIBLE
+        }
+
+        // Set Update button click listener
+        updateButton.setOnClickListener {
+            val updatedUsername = usernameEditText.text.toString()
+            val updatedPhone = phoneEditText.text.toString()
+
+            if (updatedUsername.isNotEmpty() && updatedPhone.isNotEmpty()) {
                 user?.let {
                     it.username = updatedUsername
                     it.phone = updatedPhone
-                    updateUser(it.id, updatedUsername, updatedPhone) // עדכון פרטי המשתמש
+                    updateUser(it.id, updatedUsername, updatedPhone)
                 }
             } else {
                 Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // כפתור Delete – מוחק את המשתמש ומחזיר למסך התחברות
-        deleteButton.setOnClickListener {
-            user?.let {
-                deleteUser(it) // מחיקת המשתמש
-            }
-        }
-
         return view
     }
 
-    // פונקציה לשליפת המשתמש ממסד הנתונים (Room)
-    private fun getUserFromRoom() {
+    private fun logoutUser() {
+        // נתקים את המשתמש מהפיירבייס
+        FirebaseAuth.getInstance().signOut()
+        Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
+
+        // נוודא שהמשתמש יועבר למסך ה-Login
+        findNavController().navigate(R.id.action_profileFragment_to_loginFragment) // פעולה של ניווט למסך ההתחברות
+    }
+
+
+    private fun deleteUser() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // כאן תעשה שליפת המשתמש מהמייל או ה-ID
-                user = db.userDao().getUserByEmail("user@example.com") // תחליף במייל של המשתמש
-                activity?.runOnUiThread {
-                    // אחרי ששלפת את המשתמש, עדכן את ה-UI
-                    user?.let {
-                        usernameTextView.text = it.username
-                        emailTextView.text = it.email
-                        phoneTextView.setText(it.phone)
-                        println("Username from Room: ${it.username}") // הדפסת שם משתמש לשם בדיקה
+                // מחיקת המשתמש ממסד הנתונים
+                user?.let {
+                    db.userDao().deleteUserById(it.id) // מחיקת המשתמש לפי ID
+                }
+
+                // מחיקת המשתמש מ-Firebase
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                currentUser?.delete()?.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        // אם הצלחנו למחוק מהפיירבייס
+                        activity?.runOnUiThread {
+                            Toast.makeText(requireContext(), "User deleted successfully", Toast.LENGTH_SHORT).show()
+                            // ניווט למסך התחברות אחרי מחיקה
+                            findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
+                        }
+                    } else {
+                        activity?.runOnUiThread {
+                            Toast.makeText(requireContext(), "Error deleting user from Firebase", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    // פונקציה לעדכון המשתמש
-    private fun updateUser(userId: Int, updatedUsername: String, updatedPhone: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                db.userDao().updateUser(updatedUsername, updatedPhone, userId) // עדכון פרטי המשתמש
-                activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "User updated successfully", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "Error updating user", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    // פונקציה למחיקת המשתמש
-    private fun deleteUser(user: User) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                db.userDao().deleteUserById(user.id) // מחיקת המשתמש לפי ה-ID
-                activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "User deleted successfully", Toast.LENGTH_SHORT).show()
-                    // ניווט למסך Login אחרי מחיקה
-                    findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
                 }
             } catch (e: Exception) {
                 activity?.runOnUiThread {
@@ -135,4 +139,50 @@ class ProfileFragment : Fragment() {
             }
         }
     }
+
+    private fun getUserFromRoom(userEmail: String?) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                userEmail?.let {
+                    user = db.userDao().getUserByEmail(it)
+                }
+                activity?.runOnUiThread {
+                    user?.let {
+                        // Display user details as text
+                        usernameTextView.text = it.username
+                        phoneTextView.text = it.phone
+                        emailTextView.text = it.email
+
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun updateUser(userId: Int, updatedUsername: String, updatedPhone: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                db.userDao().updateUser(updatedUsername, updatedPhone, userId)
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "User updated successfully", Toast.LENGTH_SHORT).show()
+                    usernameTextView.text = updatedUsername
+                    phoneTextView.text = updatedPhone
+
+                    // Hide edit fields and show updated text
+                    usernameTextView.visibility = View.VISIBLE
+                    phoneTextView.visibility = View.VISIBLE
+                    usernameEditText.visibility = View.GONE
+                    phoneEditText.visibility = View.GONE
+                    updateButton.visibility = View.GONE
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "Error updating user", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 }
+

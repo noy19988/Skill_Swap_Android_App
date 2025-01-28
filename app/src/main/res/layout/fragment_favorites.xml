@@ -42,10 +42,4 @@
     </LinearLayout>
 
     <!-- צ'קבוקס בצד ימין -->
-    <CheckBox
-        android:id="@+id/mainCheckBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_margin="8dp" />
 </LinearLayout>

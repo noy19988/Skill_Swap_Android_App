@@ -45,6 +45,17 @@
         android:label="Menu"
         tools:layout="@layout/fragment_menu" />
 
+
+    <!-- Edit/Delete Post Fragment -->
+    <fragment
+        android:id="@+id/editDeltePostFragment"
+        android:name="com.example.skill_swap_app.view.EditDeletePostFragment"
+        android:label="Edit or Delete Post">
+        <argument
+            android:name="postId"
+            app:argType="integer"/>
+    </fragment>
+
     <!-- AddPost Fragment -->
     <fragment
         android:id="@+id/addPostFragment"
