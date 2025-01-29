@@ -2,31 +2,53 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:layout_marginTop="60dp">
 
+    <!-- ImageView להצגת התמונה של הפוסט -->
+    <ImageView
+        android:id="@+id/selected_image_view"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:src="@android:drawable/ic_menu_camera" /> <!-- תמונה דיפולטיבית -->
+
+    <!-- כפתור להעלאת תמונה -->
+    <Button
+        android:id="@+id/upload_image_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upload Image" />
+
+    <!-- EditText עבור תיאור הפוסט -->
     <EditText
         android:id="@+id/description_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Description" />
 
+    <!-- Spinner עבור רמת מיומנות -->
     <Spinner
         android:id="@+id/skill_level_spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:entries="@array/skill_levels" />
 
+    <!-- EditText עבור מספר הטלפון -->
     <EditText
         android:id="@+id/phone_number_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Phone Number" />
 
+    <!-- כפתור לעדכון הפוסט -->
     <Button
         android:id="@+id/post_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Update Post" />
 
+    <!-- כפתור למחיקת הפוסט -->
     <Button
         android:id="@+id/delete_button"
         android:layout_width="match_parent"

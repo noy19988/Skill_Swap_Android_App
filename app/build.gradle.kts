@@ -43,7 +43,6 @@ android {
 
 dependencies {
 
-
     implementation(libs.glide)
     annotationProcessor(libs.compiler)
     implementation(libs.picasso)
@@ -72,6 +71,28 @@ dependencies {
     kapt(libs.androidx.room.compiler)
 
     implementation(libs.androidx.room.ktx)
+
+
+
+    // Retrofit for networking
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // OkHttp for logging HTTP requests (optional but useful for debugging)
+    implementation(libs.logging.interceptor)
+
+    implementation(libs.okhttp)
+
+
+    // ViewModel and LiveData
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+
+    // Coroutine for background tasks
+    implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.androidx.cardview)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

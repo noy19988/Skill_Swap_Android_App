@@ -5,12 +5,34 @@
     android:padding="16dp"
     android:layout_marginTop="80dp"> <!-- מרווח למעלה מה-toolbar -->
 
+        <!-- תמונת פרופיל -->
+        <ImageView
+            android:id="@+id/profile_image_view"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_menu_camera"
+            android:scaleType="centerCrop"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- כפתור להעלאת תמונה - יופיע רק כשעורכים -->
+        <Button
+            android:id="@+id/upload_image_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upload Profile Image"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp" />
+
         <!-- ProgressBar - יהיה מוצג בעת חיבור או תהליך ארוך -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="gone" /> <!-- מתחיל ב-גולל (לא מוצג) -->
+            android:visibility="gone"
+            android:layout_gravity="center" />
 
         <!-- Email - תצוגה בלבד (לא ניתן לערוך) -->
         <LinearLayout
@@ -21,7 +43,6 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
                     android:text="Email:  "
                     android:textSize="16sp" />
 
@@ -29,11 +50,10 @@
                     android:id="@+id/emailTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:textSize="16sp" />
         </LinearLayout>
 
-        <!-- Username - תצוגה של טקסט בהתחלה ואז אפשרות עריכה אחרי לחיצה על Edit -->
+        <!-- Username -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -42,11 +62,9 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:layout_weight="0"
                     android:text="Username:  "
                     android:textSize="16sp" />
 
-                <!-- בהתחלה, זה TextView, לאחר Edit נהפוך אותו ל-EditText -->
                 <TextView
                     android:id="@+id/usernameTextView"
                     android:layout_width="wrap_content"
@@ -61,11 +79,10 @@
                     android:hint="Enter Username"
                     android:textSize="16sp"
                     android:layout_weight="1"
-                    android:visibility="gone"
-                    android:enabled="true"/> <!-- נסתר בהתחלה -->
+                    android:visibility="gone"/>
         </LinearLayout>
 
-        <!-- Phone - תצוגה של טקסט בהתחלה ואז אפשרות עריכה אחרי לחיצה על Edit -->
+        <!-- Phone -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -74,11 +91,9 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
                     android:text="Phone:  "
                     android:textSize="16sp" />
 
-                <!-- בהתחלה, זה TextView, לאחר Edit נהפוך אותו ל-EditText -->
                 <TextView
                     android:id="@+id/phoneTextView"
                     android:layout_width="wrap_content"
@@ -93,36 +108,32 @@
                     android:layout_weight="1"
                     android:hint="Enter Phone Number"
                     android:textSize="16sp"
-                    android:visibility="gone"
-                    android:enabled="true"/> <!-- נסתר בהתחלה -->
+                    android:visibility="gone"/>
         </LinearLayout>
 
-        <!-- כפתור Edit – מאפשר עריכה -->
+        <!-- כפתורים -->
         <Button
             android:id="@+id/edit_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Edit" />
 
-        <!-- כפתור Update – ייחשף רק לאחר לחיצה על Edit -->
         <Button
             android:id="@+id/update_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Update"
-            android:visibility="gone" />
+            android:visibility="gone"/>
 
-        <!-- כפתור Delete Account -->
         <Button
             android:id="@+id/delete_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Delete Account" />
+            android:text="Delete Account"/>
 
-        <!-- כפתור Logout -->
         <Button
             android:id="@+id/logout_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Logout" />
+            android:text="Logout"/>
 </LinearLayout>

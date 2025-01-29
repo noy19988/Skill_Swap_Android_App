@@ -1,4 +1,3 @@
-// pluginManagement block before changes
 pluginManagement {
     repositories {
         google {

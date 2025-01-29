@@ -1,19 +1,19 @@
 package com.example.skill_swap_app.view
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.model.AppDatabase
 import com.example.skill_swap_app.model.User
@@ -23,17 +23,19 @@ import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
 
+    private lateinit var profileImageView: ImageView
+    private lateinit var uploadImageButton: Button
     private lateinit var usernameTextView: TextView
     private lateinit var usernameEditText: EditText
     private lateinit var phoneTextView: TextView
     private lateinit var phoneEditText: EditText
     private lateinit var updateButton: Button
     private lateinit var editButton: Button
+    private lateinit var emailTextView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var db: AppDatabase
-    private lateinit var emailTextView: TextView
-
     private var user: User? = null
+    private var selectedImageUri: Uri? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,7 +43,8 @@ class ProfileFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
 
-        // Initialize views
+        profileImageView = view.findViewById(R.id.profile_image_view)
+        uploadImageButton = view.findViewById(R.id.upload_image_button)
         usernameTextView = view.findViewById(R.id.usernameTextView)
         usernameEditText = view.findViewById(R.id.usernameEditText)
         phoneTextView = view.findViewById(R.id.phoneTextView)
@@ -49,37 +52,32 @@ class ProfileFragment : Fragment() {
         updateButton = view.findViewById(R.id.update_button)
         editButton = view.findViewById(R.id.edit_button)
         emailTextView = view.findViewById(R.id.emailTextView)
-//        progressBar = view.findViewById(R.id.progressBar)
+        progressBar = view.findViewById(R.id.progressBar)
 
         db = AppDatabase.getDatabase(requireContext())
+
         val deleteButton: Button = view.findViewById(R.id.delete_button)
-        deleteButton.setOnClickListener {
-            deleteUser() // קריאה לפונקציית מחיקת המשתמש
-        }
+        deleteButton.setOnClickListener { deleteUser() }
 
         val logoutButton: Button = view.findViewById(R.id.logout_button)
-        logoutButton.setOnClickListener {
-            logoutUser() // קריאה לפונקציה שתנתק את המשתמש ותחזיר אותו למסך ההתחברות
-        }
+        logoutButton.setOnClickListener { logoutUser() }
 
-        // Retrieve user info from SharedPreferences
         val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
         val userEmail = sharedPreferences.getString("user_email", null)
 
-        // Retrieve user data from the database
         getUserFromRoom(userEmail)
 
-        // Set Edit button click listener
         editButton.setOnClickListener {
-            // Enable editing of username and phone
             usernameTextView.visibility = View.GONE
             phoneTextView.visibility = View.GONE
             usernameEditText.visibility = View.VISIBLE
             phoneEditText.visibility = View.VISIBLE
             updateButton.visibility = View.VISIBLE
+            uploadImageButton.visibility = View.VISIBLE  // הצגת כפתור העלאת תמונה
         }
 
-        // Set Update button click listener
+        uploadImageButton.setOnClickListener { openImagePicker() }
+
         updateButton.setOnClickListener {
             val updatedUsername = usernameEditText.text.toString()
             val updatedPhone = phoneEditText.text.toString()
@@ -98,43 +96,20 @@ class ProfileFragment : Fragment() {
         return view
     }
 
-    private fun logoutUser() {
-        // נתקים את המשתמש מהפיירבייס
-        FirebaseAuth.getInstance().signOut()
-        Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
-
-        // נוודא שהמשתמש יועבר למסך ה-Login
-        findNavController().navigate(R.id.action_profileFragment_to_loginFragment) // פעולה של ניווט למסך ההתחברות
+    private fun openImagePicker() {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, IMAGE_PICKER_REQUEST_CODE)
     }
 
-
-    private fun deleteUser() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                // מחיקת המשתמש ממסד הנתונים
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK && requestCode == IMAGE_PICKER_REQUEST_CODE) {
+            selectedImageUri = data?.data
+            selectedImageUri?.let { uri ->
+                profileImageView.setImageURI(uri)
                 user?.let {
-                    db.userDao().deleteUserById(it.id) // מחיקת המשתמש לפי ID
-                }
-
-                // מחיקת המשתמש מ-Firebase
-                val currentUser = FirebaseAuth.getInstance().currentUser
-                currentUser?.delete()?.addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // אם הצלחנו למחוק מהפיירבייס
-                        activity?.runOnUiThread {
-                            Toast.makeText(requireContext(), "User deleted successfully", Toast.LENGTH_SHORT).show()
-                            // ניווט למסך התחברות אחרי מחיקה
-                            findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
-                        }
-                    } else {
-                        activity?.runOnUiThread {
-                            Toast.makeText(requireContext(), "Error deleting user from Firebase", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "Error deleting user", Toast.LENGTH_SHORT).show()
+                    updateUserProfileImage(it.id, uri.toString())
                 }
             }
         }
@@ -143,16 +118,16 @@ class ProfileFragment : Fragment() {
     private fun getUserFromRoom(userEmail: String?) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                userEmail?.let {
-                    user = db.userDao().getUserByEmail(it)
-                }
+                userEmail?.let { user = db.userDao().getUserByEmail(it) }
                 activity?.runOnUiThread {
                     user?.let {
-                        // Display user details as text
                         usernameTextView.text = it.username
                         phoneTextView.text = it.phone
                         emailTextView.text = it.email
 
+                        if (!it.profileImageUrl.isNullOrEmpty()) {
+                            Glide.with(requireContext()).load(it.profileImageUrl).into(profileImageView)
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -169,13 +144,12 @@ class ProfileFragment : Fragment() {
                     Toast.makeText(requireContext(), "User updated successfully", Toast.LENGTH_SHORT).show()
                     usernameTextView.text = updatedUsername
                     phoneTextView.text = updatedPhone
-
-                    // Hide edit fields and show updated text
                     usernameTextView.visibility = View.VISIBLE
                     phoneTextView.visibility = View.VISIBLE
                     usernameEditText.visibility = View.GONE
                     phoneEditText.visibility = View.GONE
                     updateButton.visibility = View.GONE
+                    uploadImageButton.visibility = View.GONE
                 }
             } catch (e: Exception) {
                 activity?.runOnUiThread {
@@ -184,5 +158,52 @@ class ProfileFragment : Fragment() {
             }
         }
     }
-}
 
+    private fun updateUserProfileImage(userId: Int, imageUrl: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                db.userDao().updateUserProfileImage(userId, imageUrl)
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "Profile image updated successfully", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "Error updating profile image", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun logoutUser() {
+        FirebaseAuth.getInstance().signOut()
+        Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
+        findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
+    }
+
+    private fun deleteUser() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                user?.let { db.userDao().deleteUserById(it.id) }
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                currentUser?.delete()?.addOnCompleteListener { task ->
+                    activity?.runOnUiThread {
+                        if (task.isSuccessful) {
+                            Toast.makeText(requireContext(), "User deleted successfully", Toast.LENGTH_SHORT).show()
+                            findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
+                        } else {
+                            Toast.makeText(requireContext(), "Error deleting user from Firebase", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "Error deleting user", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    companion object {
+        private const val IMAGE_PICKER_REQUEST_CODE = 2001
+    }
+}

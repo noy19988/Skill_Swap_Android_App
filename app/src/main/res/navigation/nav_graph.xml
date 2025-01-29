@@ -35,7 +35,7 @@
             app:destination="@id/menuFragment" />
         <action
             android:id="@+id/action_feedFragment_to_addPostFragment"
-            app:destination="@id/addPostFragment" /> <!-- הוספתי את המעבר ל-AddPostFragment -->
+            app:destination="@id/addPostFragment" />
     </fragment>
 
     <!-- Menu Fragment -->
@@ -45,10 +45,9 @@
         android:label="Menu"
         tools:layout="@layout/fragment_menu" />
 
-
     <!-- Edit/Delete Post Fragment -->
     <fragment
-        android:id="@+id/editDeltePostFragment"
+        android:id="@+id/editDeletePostFragment"
         android:name="com.example.skill_swap_app.view.EditDeletePostFragment"
         android:label="Edit or Delete Post">
         <argument
@@ -64,7 +63,10 @@
         tools:layout="@layout/fragment_add_post">
         <action
             android:id="@+id/action_addPostFragment_to_feedFragment"
-            app:destination="@id/feedFragment" /> <!-- הוספתי את המעבר ל-FeedFragment -->
+            app:destination="@id/feedFragment" />
+        <action
+            android:id="@+id/action_addPostFragment_to_photoListFragment"
+            app:destination="@id/photoListFragment" /> <!-- ניווט ל-PhotoListFragment -->
     </fragment>
 
     <!-- User Profile Fragment -->
@@ -75,7 +77,7 @@
         tools:layout="@layout/fragment_profile">
         <action
             android:id="@+id/action_profileFragment_to_loginFragment"
-            app:destination="@id/loginFragment" /> <!-- המעבר ל-loginFragment -->
+            app:destination="@id/loginFragment" />
     </fragment>
 
     <!-- My Posts Fragment -->
@@ -83,14 +85,18 @@
         android:id="@+id/myPostsFragment"
         android:name="com.example.skill_swap_app.view.MyPostsFragment"
         android:label="My Posts"
-        tools:layout="@layout/fragment_my_posts" />
+        tools:layout="@layout/fragment_my_posts">
+        <action
+            android:id="@+id/action_myPostsFragment_to_editDeletePostFragment"
+            app:destination="@id/editDeletePostFragment" />
+    </fragment>
 
-    <!-- YouTube Recommendations Fragment -->
+    <!-- Courses Recommendations Fragment -->
     <fragment
-        android:id="@+id/youtubeRecommendationsFragment"
-        android:name="com.example.skill_swap_app.view.YouTubeRecommendationsFragment"
-        android:label="YouTube Recommendations"
-        tools:layout="@layout/fragment_you_tube_recommendations" />
+        android:id="@+id/coursesRecommendationsFragment"
+        android:name="com.example.skill_swap_app.view.CourseListFragment"
+        android:label="Courses Recommendations"
+        tools:layout="@layout/fragment_course_list" />
 
     <!-- Favorites Fragment -->
     <fragment
@@ -98,4 +104,15 @@
         android:name="com.example.skill_swap_app.view.FavoritesFragment"
         android:label="Favorites"
         tools:layout="@layout/fragment_favorites" />
+
+    <!-- Photo List Fragment for Unsplash -->
+    <fragment
+        android:id="@+id/photoListFragment"
+        android:name="com.example.skill_swap_app.view.PhotoListFragment"
+        android:label="Unsplash Photos"
+        tools:layout="@layout/fragment_photo_list">
+        <action
+            android:id="@+id/action_photoListFragment_to_addPostFragment"
+            app:destination="@id/addPostFragment" /> <!-- חזרה ל-AddPostFragment -->
+    </fragment>
 </navigation>

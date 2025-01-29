@@ -21,6 +21,9 @@ interface PostDao {
     @Query("SELECT * FROM posts WHERE userId = :userId")
     suspend fun getPostsByUserId(userId: Int): List<Post>
 
+    @Query("SELECT * FROM posts WHERE id = :postId")
+    suspend fun getPostById(postId: Int): Post
+
     @Update
     suspend fun updatePost(post: Post)
 

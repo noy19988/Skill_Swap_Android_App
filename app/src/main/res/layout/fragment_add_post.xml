@@ -9,12 +9,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <!-- כפתור העלאת תמונה -->
+    <!-- כפתור להוספת תמונה מהטלפון -->
     <Button
         android:id="@+id/upload_image_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Upload Image" />
+
+    <!-- כפתור להוספת תמונה מ-Unsplash -->
+    <Button
+        android:id="@+id/upload_image_from_unsplash_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upload Image from Unsplash" />
 
     <!-- ImageView להצגת התמונה שנבחרה -->
     <ImageView
@@ -39,6 +46,7 @@
             android:gravity="top|start"
             android:scrollbars="vertical" />
     </ScrollView>
+
     <!-- Spinner לרמת המיומנות -->
     <Spinner
         android:id="@+id/skill_level_spinner"
