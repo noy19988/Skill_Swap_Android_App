@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Post::class], version = 3, exportSchema = false)  // עדכון גרסה ל-3
+@Database(entities = [Post::class], version = 4, exportSchema = false)  // ✅ עדכון לגרסה 4
 abstract class PostDatabase : RoomDatabase() {
     abstract fun postDao(): PostDao
 
@@ -13,7 +15,6 @@ abstract class PostDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: PostDatabase? = null
 
-        // פונקציה לקבלת האינסטנס של ה-DB
         fun getDatabase(context: Context): PostDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -21,10 +22,17 @@ abstract class PostDatabase : RoomDatabase() {
                     PostDatabase::class.java,
                     "skill_swap_post_db"
                 )
-                    .fallbackToDestructiveMigration()  // אם הסכימה השתנתה, נמחק את הנתונים הישנים
+                    .addMigrations(MIGRATION_3_4)  // ✅ הוספת מיגרציה
                     .build()
                 INSTANCE = instance
                 instance
+            }
+        }
+
+        // ✅ מיגרציה: הוספת העמודה favoritedByUserId לטבלת posts
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE posts ADD COLUMN favoritedByUserId INTEGER DEFAULT NULL")
             }
         }
     }

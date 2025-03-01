@@ -7,10 +7,11 @@ import androidx.room.PrimaryKey
 data class Post(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val description: String,       // תיאור הפוסט
-    val skillLevel: String,        // רמת מיומנות (סביר, טוב, מומחה)
-    val phoneNumber: String,       // מספר הטלפון של המשתמש
-    val imageUrl: String, // כתובת התמונה (או נתיב התמונה)
+    val description: String,
+    val skillLevel: String,
+    val phoneNumber: String,
+    val imageUrl: String,
+    val userId: Int,  // 🔹 מזהה המשתמש שיצר את הפוסט
     var isFavorite: Boolean = false,
-    val userId: Int  // קשר עם המשתמש
+    var favoritedByUserId: Int? = null  // 🔹 מזהה המשתמש שסימן את הפוסט כפייבוריט
 )

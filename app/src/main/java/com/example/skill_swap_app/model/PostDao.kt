@@ -4,8 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import androidx.room.Delete
-
 
 @Dao
 interface PostDao {
@@ -15,7 +13,7 @@ interface PostDao {
     @Query("SELECT * FROM posts")
     suspend fun getAllPosts(): List<Post>
 
-    @Query("SELECT * FROM posts WHERE skillLevel = :skillLevel")  // סינון לפי רמת מיומנות
+    @Query("SELECT * FROM posts WHERE skillLevel = :skillLevel")
     suspend fun getPostsBySkillLevel(skillLevel: String): List<Post>
 
     @Query("SELECT * FROM posts WHERE userId = :userId")
@@ -27,10 +25,10 @@ interface PostDao {
     @Update
     suspend fun updatePost(post: Post)
 
-    @Query("SELECT * FROM posts WHERE isFavorite = 1")
-    suspend fun getFavoritePosts(): List<Post>
+    // ✅ טעינת פוסטים מועדפים לפי המשתמש שסימן אותם
+    @Query("SELECT * FROM posts WHERE isFavorite = 1 AND favoritedByUserId = :userId")
+    suspend fun getFavoritePosts(userId: Int): List<Post>
 
     @Query("DELETE FROM posts WHERE id = :postId")
     suspend fun deletePost(postId: Int)
 }
-

@@ -1,6 +1,8 @@
 package com.example.skill_swap_app.view
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,10 +22,10 @@ import kotlinx.coroutines.withContext
 class FavoritesFragment : Fragment() {
 
     private var columnCount = 1
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         arguments?.let {
             columnCount = it.getInt(ARG_COLUMN_COUNT)
         }
@@ -34,40 +36,50 @@ class FavoritesFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_favorites_list, container, false)
+        recyclerView = view.findViewById(R.id.list)
 
-        // Set the adapter
-        if (view is RecyclerView) {
-            with(view) {
-                layoutManager = when {
-                    columnCount <= 1 -> LinearLayoutManager(context)
-                    else -> GridLayoutManager(context, columnCount)
-                }
-                loadFavoritePosts { posts ->
-                    adapter = MyItemRecyclerViewAdapter_favorites(posts)
-                }
-            }
+        recyclerView.layoutManager = when {
+            columnCount <= 1 -> LinearLayoutManager(context)
+            else -> GridLayoutManager(context, columnCount)
         }
+
+        loadFavoritePosts()
+
         return view
     }
 
-    private fun loadFavoritePosts(callback: (List<Post>) -> Unit) {
+    override fun onResume() {
+        super.onResume()
+        loadFavoritePosts()
+    }
+
+    private fun loadFavoritePosts() {
+        val currentUserId = getCurrentUserId() ?: return
         lifecycleScope.launch {
-            // מבצע את הקריאה למסד הנתונים ב-Background thread
             val posts = withContext(Dispatchers.IO) {
                 val db = PostDatabase.getDatabase(requireContext())
-                db.postDao().getFavoritePosts()  // קורא רק את הפוסטים האהובים
+                db.postDao().getFavoritePosts(currentUserId)  // ✅ טעינה לפי `userId`
             }
-            // עדכון ה-UI thread עם הפוסטים
-            callback(posts)
+            recyclerView.adapter = MyItemRecyclerViewAdapter_favorites(posts)
         }
     }
 
-    companion object {
+    private fun getCurrentUserId(): Int? {
+        val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+        val userId = sharedPreferences.getInt("user_id", -1)
 
-        // TODO: Customize parameter argument names
+        if (userId == -1) {
+            Log.e("SharedPreferences", "User ID is missing from SharedPreferences!")
+            return null
+        }
+
+        Log.d("SharedPreferences", "Loaded userId: $userId")
+        return userId
+    }
+
+    companion object {
         const val ARG_COLUMN_COUNT = "column-count"
 
-        // TODO: Customize parameter initialization
         @JvmStatic
         fun newInstance(columnCount: Int) =
             FavoritesFragment().apply {

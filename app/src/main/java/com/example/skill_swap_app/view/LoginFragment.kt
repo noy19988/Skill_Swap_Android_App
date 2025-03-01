@@ -31,8 +31,6 @@ class LoginFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_login, container, false)
 
         auth = FirebaseAuth.getInstance()
-
-        // אתחול הדאטה בייס
         db = AppDatabase.getDatabase(requireContext())
 
         val emailInput: EditText = view.findViewById(R.id.email_input)
@@ -50,29 +48,27 @@ class LoginFragment : Fragment() {
             } else {
                 progressBar.visibility = View.VISIBLE
 
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val user = db.userDao().getUserByEmail(email)
-                    activity?.runOnUiThread {
-                        if (user != null) {
-                            Log.d("LoginFragment", "User found in Room Database: $user")
-                        } else {
-                            Log.d("LoginFragment", "User not found in Room Database")
-                        }
-                    }
-                }
-
                 auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         progressBar.visibility = View.GONE
                         if (task.isSuccessful) {
-                            // הוספת מייל של המשתמש ב-SharedPreferences אחרי התחברות מוצלחת
-                            val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
-                            val editor = sharedPreferences.edit()
-                            editor.putString("user_email", email)
-                            editor.apply()
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                val user = db.userDao().getUserByEmail(email)
+                                if (user != null) {
+                                    Log.d("LoginFragment", "User found: $user")
+
+                                    // ✅ שמירת userId בזיכרון (SharedPreferences)
+                                    val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+                                    val editor = sharedPreferences.edit()
+                                    editor.putInt("user_id", user.id)
+                                    editor.putString("user_email", email)
+                                    editor.apply()
+                                } else {
+                                    Log.e("LoginFragment", "User not found in Room Database")
+                                }
+                            }
 
                             Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
-                            Log.d("LoginFragment", "Firebase login successful")
                             findNavController().navigate(R.id.action_loginFragment_to_feedFragment)
                         } else {
                             Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
