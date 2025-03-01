@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -14,6 +15,8 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.appcompat.app.ActionBar
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -35,15 +38,11 @@ class AddPostFragment : Fragment() {
     private lateinit var uploadImageFromUnsplashButton: Button
     private lateinit var selectedImageView: ImageView
     private var selectedImageUri: Uri? = null
-    private var selectedImageUrl: String? = null // משתנה לשמירת כתובת תמונה שנבחרה מ-Unsplash
+    private var selectedImageUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val menuFragment = MenuFragment()
-        childFragmentManager.beginTransaction()
-            .replace(R.id.menu_fragment_container, menuFragment)
-            .commit()
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -51,6 +50,9 @@ class AddPostFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_add_post, container, false)
+
+        val actionBar: ActionBar? = (requireActivity() as AppCompatActivity).supportActionBar
+        actionBar?.setDisplayHomeAsUpEnabled(true)
 
         descriptionEditText = view.findViewById(R.id.description_edittext)
         skillLevelSpinner = view.findViewById(R.id.skill_level_spinner)
@@ -60,18 +62,15 @@ class AddPostFragment : Fragment() {
         uploadImageFromUnsplashButton = view.findViewById(R.id.upload_image_from_unsplash_button)
         selectedImageView = view.findViewById(R.id.selected_image_view)
 
-        // בדיקה אם קיבלנו תמונה שנבחרה מ-Unsplash
         arguments?.getString("selectedImageUrl")?.let {
             selectedImageUrl = it
-            Glide.with(this).load(it).into(selectedImageView) // הצגת התמונה שנבחרה
+            Glide.with(this).load(it).into(selectedImageView)
         }
 
-        // כפתור להעלאת תמונה מהטלפון
         uploadImageButton.setOnClickListener {
             openImagePicker()
         }
 
-        // כפתור לבחירת תמונה מ-Unsplash
         uploadImageFromUnsplashButton.setOnClickListener {
             findNavController().navigate(R.id.action_addPostFragment_to_photoListFragment)
         }
@@ -82,7 +81,6 @@ class AddPostFragment : Fragment() {
             val phoneNumber = phoneNumberEditText.text.toString()
 
             if (description.isNotEmpty() && phoneNumber.isNotEmpty()) {
-                // שימוש בתמונה שנבחרה (או מהטלפון או מ-Unsplash)
                 val imageUrl = selectedImageUrl ?: selectedImageUri?.toString() ?: "image_url"
 
                 val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
@@ -97,7 +95,6 @@ class AddPostFragment : Fragment() {
                             userId = it.id
                             Log.d("AddPostFragment", "User ID: $userId")
 
-                            // יצירת הפוסט עם ה-userId
                             val post = Post(
                                 description = description,
                                 skillLevel = skillLevel,
@@ -123,6 +120,16 @@ class AddPostFragment : Fragment() {
         return view
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                findNavController().navigate(R.id.action_addPostFragment_to_feedFragment)
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     private fun openImagePicker() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
@@ -134,7 +141,7 @@ class AddPostFragment : Fragment() {
         if (resultCode == Activity.RESULT_OK && requestCode == IMAGE_PICKER_REQUEST_CODE) {
             selectedImageUri = data?.data
             selectedImageView.setImageURI(selectedImageUri)
-            selectedImageUrl = null // לוודא שהתמונה מהטלפון מחליפה תמונה מ-Unsplash אם הייתה
+            selectedImageUrl = null
             Toast.makeText(requireContext(), "Image selected successfully", Toast.LENGTH_SHORT).show()
         }
     }
