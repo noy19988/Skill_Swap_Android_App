@@ -42,11 +42,9 @@ android {
 }
 
 dependencies {
-
     implementation(libs.glide)
     annotationProcessor(libs.compiler)
     implementation(libs.picasso)
-
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -58,31 +56,28 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.play.services.maps)
 
-    // Firebase BOM (כבר מוגדר)
+    // Firebase BOM
     implementation(platform(libs.firebase.bom))
-
-    // Firebase Authentication
     implementation(libs.firebase.auth.ktx)
 
     implementation(libs.androidx.room.runtime)
-
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     kapt(libs.androidx.room.compiler)
-
     implementation(libs.androidx.room.ktx)
-
-
 
     // Retrofit for networking
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
 
-    // OkHttp for logging HTTP requests (optional but useful for debugging)
+    // OkHttp for logging HTTP requests
     implementation(libs.logging.interceptor)
-
     implementation(libs.okhttp)
 
+    // ✅ Cloudinary - עדכון לתלות ישירה
+    implementation("com.cloudinary:cloudinary-android:2.0.0") // נסה גרסה זו
+    // ניתן לנסות גם גרסאות ישנות יותר אם עדיין לא עובד:
+    // implementation("com.cloudinary:cloudinary-android:1.31.0")
 
     // ViewModel and LiveData
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -92,7 +87,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.androidx.cardview)
-
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

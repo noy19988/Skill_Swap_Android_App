@@ -17,9 +17,11 @@ import com.bumptech.glide.Glide
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.model.AppDatabase
 import com.example.skill_swap_app.model.User
+import com.example.skill_swap_app.utils.CloudinaryManager
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ProfileFragment : Fragment() {
 
@@ -34,6 +36,7 @@ class ProfileFragment : Fragment() {
     private lateinit var emailTextView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var db: AppDatabase
+    private lateinit var cloudinaryManager: CloudinaryManager
     private var user: User? = null
     private var selectedImageUri: Uri? = null
 
@@ -55,6 +58,7 @@ class ProfileFragment : Fragment() {
         progressBar = view.findViewById(R.id.progressBar)
 
         db = AppDatabase.getDatabase(requireContext())
+        cloudinaryManager = CloudinaryManager(requireContext()) // יצירת מופע CloudinaryManager
 
         val deleteButton: Button = view.findViewById(R.id.delete_button)
         deleteButton.setOnClickListener { deleteUser() }
@@ -108,12 +112,39 @@ class ProfileFragment : Fragment() {
             selectedImageUri = data?.data
             selectedImageUri?.let { uri ->
                 profileImageView.setImageURI(uri)
-                user?.let {
-                    updateUserProfileImage(it.id, uri.toString())
+                uploadImageToCloudinary(uri) // קריאה לפונקציה להעלאת התמונה ל-Cloudinary
+            }
+        }
+    }
+
+    private fun uploadImageToCloudinary(uri: Uri) {
+        progressBar.visibility = View.VISIBLE
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Log.d("Cloudinary", "Starting upload for: $uri")
+                val uploadedUrl = cloudinaryManager.uploadImage(uri)
+                withContext(Dispatchers.Main) {
+                    progressBar.visibility = View.GONE
+                    if (!uploadedUrl.isNullOrEmpty()) {
+                        Log.d("Cloudinary", "Upload success: $uploadedUrl")
+                        user?.let {
+                            updateUserProfileImage(it.id, uploadedUrl)
+                        }
+                    } else {
+                        Log.e("Cloudinary", "Upload failed: URL is null or empty")
+                        Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("Cloudinary", "Upload failed with error", e)
+                withContext(Dispatchers.Main) {
+                    progressBar.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Upload failed: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
+
 
     private fun getUserFromRoom(userEmail: String?) {
         lifecycleScope.launch(Dispatchers.IO) {
@@ -164,6 +195,7 @@ class ProfileFragment : Fragment() {
             try {
                 db.userDao().updateUserProfileImage(userId, imageUrl)
                 activity?.runOnUiThread {
+                    Glide.with(requireContext()).load(imageUrl).into(profileImageView)
                     Toast.makeText(requireContext(), "Profile image updated successfully", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
@@ -184,16 +216,10 @@ class ProfileFragment : Fragment() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 user?.let { db.userDao().deleteUserById(it.id) }
-                val currentUser = FirebaseAuth.getInstance().currentUser
-                currentUser?.delete()?.addOnCompleteListener { task ->
-                    activity?.runOnUiThread {
-                        if (task.isSuccessful) {
-                            Toast.makeText(requireContext(), "User deleted successfully", Toast.LENGTH_SHORT).show()
-                            findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
-                        } else {
-                            Toast.makeText(requireContext(), "Error deleting user from Firebase", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                FirebaseAuth.getInstance().currentUser?.delete()
+                activity?.runOnUiThread {
+                    Toast.makeText(requireContext(), "User deleted successfully", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
                 }
             } catch (e: Exception) {
                 activity?.runOnUiThread {

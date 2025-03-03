@@ -10,11 +10,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Spinner
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -25,8 +21,11 @@ import com.example.skill_swap_app.R
 import com.example.skill_swap_app.model.Post
 import com.example.skill_swap_app.model.PostDatabase
 import com.example.skill_swap_app.model.AppDatabase
-import kotlinx.coroutines.GlobalScope
+import com.example.skill_swap_app.utils.CloudinaryManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class AddPostFragment : Fragment() {
 
@@ -37,6 +36,9 @@ class AddPostFragment : Fragment() {
     private lateinit var uploadImageButton: Button
     private lateinit var uploadImageFromUnsplashButton: Button
     private lateinit var selectedImageView: ImageView
+    private lateinit var cloudinaryManager: CloudinaryManager
+    private lateinit var progressBar: ProgressBar
+
     private var selectedImageUri: Uri? = null
     private var selectedImageUrl: String? = null
 
@@ -61,11 +63,21 @@ class AddPostFragment : Fragment() {
         uploadImageButton = view.findViewById(R.id.upload_image_button)
         uploadImageFromUnsplashButton = view.findViewById(R.id.upload_image_from_unsplash_button)
         selectedImageView = view.findViewById(R.id.selected_image_view)
+        progressBar = view.findViewById(R.id.progressBar)
+
+        cloudinaryManager = CloudinaryManager(requireContext()) // יצירת מופע של CloudinaryManager
 
         arguments?.getString("selectedImageUrl")?.let {
             selectedImageUrl = it
             Glide.with(this).load(it).into(selectedImageView)
+
+            // ✅ להוריד ולהעלות את התמונה לקלאודינרי
+            lifecycleScope.launch {
+                downloadAndUploadImage(it)
+            }
         }
+
+
 
         uploadImageButton.setOnClickListener {
             openImagePicker()
@@ -76,45 +88,7 @@ class AddPostFragment : Fragment() {
         }
 
         postButton.setOnClickListener {
-            val description = descriptionEditText.text.toString()
-            val skillLevel = skillLevelSpinner.selectedItem.toString()
-            val phoneNumber = phoneNumberEditText.text.toString()
-
-            if (description.isNotEmpty() && phoneNumber.isNotEmpty()) {
-                val imageUrl = selectedImageUrl ?: selectedImageUri?.toString() ?: "image_url"
-
-                val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
-                val userEmail = sharedPreferences.getString("user_email", null)
-
-                if (!userEmail.isNullOrEmpty()) {
-                    lifecycleScope.launch {
-                        val db = AppDatabase.getDatabase(requireContext())
-                        val user = db.userDao().getUserByEmail(userEmail)
-                        var userId = 0
-                        user?.let {
-                            userId = it.id
-                            Log.d("AddPostFragment", "User ID: $userId")
-
-                            val post = Post(
-                                description = description,
-                                skillLevel = skillLevel,
-                                phoneNumber = phoneNumber,
-                                imageUrl = imageUrl,
-                                userId = userId
-                            )
-
-                            insertPost(post)
-
-                            Toast.makeText(requireContext(), "Post created successfully", Toast.LENGTH_SHORT).show()
-                            findNavController().navigate(R.id.action_addPostFragment_to_feedFragment)
-                        }
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
-            }
+            createPost()
         }
 
         return view
@@ -142,14 +116,95 @@ class AddPostFragment : Fragment() {
             selectedImageUri = data?.data
             selectedImageView.setImageURI(selectedImageUri)
             selectedImageUrl = null
-            Toast.makeText(requireContext(), "Image selected successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Uploading image...", Toast.LENGTH_SHORT).show()
+
+            // 🔄 התחלת העלאת התמונה ל-Cloudinary
+            uploadImageToCloudinary(selectedImageUri!!)
+        }
+    }
+
+
+    private suspend fun downloadAndUploadImage(imageUrl: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val inputStream = java.net.URL(imageUrl).openStream()
+                val file = File(requireContext().cacheDir, "temp_image.jpg")
+                file.outputStream().use { output -> inputStream.copyTo(output) }
+
+                val imageUri = Uri.fromFile(file)
+
+                withContext(Dispatchers.Main) {
+                    uploadImageToCloudinary(imageUri)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Failed to download image", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+
+    private fun uploadImageToCloudinary(uri: Uri) {
+        progressBar.visibility = View.VISIBLE
+        lifecycleScope.launch(Dispatchers.IO) {
+            val uploadedUrl = cloudinaryManager.uploadImage(uri)
+            withContext(Dispatchers.Main) {
+                progressBar.visibility = View.GONE
+                if (!uploadedUrl.isNullOrEmpty()) {
+                    selectedImageUrl = uploadedUrl // שמירת ה-URL החדש
+                    Glide.with(requireContext()).load(uploadedUrl).into(selectedImageView) // הצגת התמונה מהשרת
+                    Toast.makeText(requireContext(), "Image uploaded successfully!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+
+    private fun createPost() {
+        val description = descriptionEditText.text.toString()
+        val skillLevel = skillLevelSpinner.selectedItem.toString()
+        val phoneNumber = phoneNumberEditText.text.toString()
+
+        if (description.isNotEmpty() && phoneNumber.isNotEmpty()) {
+            val imageUrl = selectedImageUrl ?: "default_image_url"
+
+            val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+            val userEmail = sharedPreferences.getString("user_email", null)
+
+            if (!userEmail.isNullOrEmpty()) {
+                lifecycleScope.launch {
+                    val db = AppDatabase.getDatabase(requireContext())
+                    val user = db.userDao().getUserByEmail(userEmail)
+                    user?.let {
+                        val post = Post(
+                            description = description,
+                            skillLevel = skillLevel,
+                            phoneNumber = phoneNumber,
+                            imageUrl = imageUrl,
+                            userId = it.id
+                        )
+                        insertPost(post)
+                    }
+                }
+            } else {
+                Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun insertPost(post: Post) {
-        GlobalScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val db = PostDatabase.getDatabase(requireContext())
             db.postDao().insertPost(post)
+            withContext(Dispatchers.Main) {
+                Toast.makeText(requireContext(), "Post created successfully", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_addPostFragment_to_feedFragment)
+            }
         }
     }
 
