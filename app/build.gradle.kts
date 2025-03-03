@@ -59,6 +59,8 @@ dependencies {
     // Firebase BOM
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
+    implementation (libs.firebase.firestore.ktx)
+
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.navigation.fragment.ktx)

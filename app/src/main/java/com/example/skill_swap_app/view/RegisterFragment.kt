@@ -56,18 +56,19 @@ class RegisterFragment : Fragment() {
                         if (task.isSuccessful) {
                             lifecycleScope.launch(Dispatchers.IO) {
                                 val user = User(username = username, email = email, phone = phone)
-                                val userId = db.userDao().insertUser(user).toInt()  // ✅ עכשיו זה יעבוד כי insertUser מחזיר Long
+                                val userId = db.userDao().insertUser(user).toInt()
 
                                 Log.d("RegisterFragment", "User saved: $user (ID: $userId)")
 
-                                // ✅ שמירת userId בזיכרון (SharedPreferences)
                                 val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
                                 val editor = sharedPreferences.edit()
                                 editor.putInt("user_id", userId)
                                 editor.putString("user_email", email)
                                 editor.apply()
-                            }
 
+                                // ✅ שמירה גם בפיירסטור
+                                saveUserToFirestore(username, email, phone)
+                            }
 
                             Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
                             requireActivity().onBackPressed()
@@ -80,5 +81,28 @@ class RegisterFragment : Fragment() {
         }
 
         return view
+    }
+
+
+
+
+    private fun saveUserToFirestore(username: String, email: String, phone: String) {
+        val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+        val userMap = hashMapOf(
+            "username" to username,
+            "email" to email,
+            "phone" to phone,
+            "profileImageUrl" to "" // אפשרות להוסיף תמונת פרופיל מאוחר יותר
+        )
+
+        firestore.collection("users").document(email)
+            .set(userMap)
+            .addOnSuccessListener {
+                Log.d("RegisterFragment", "User added to Firestore: $email")
+            }
+            .addOnFailureListener { e ->
+                Log.e("RegisterFragment", "Failed to add user to Firestore", e)
+            }
     }
 }

@@ -22,6 +22,7 @@ import com.example.skill_swap_app.model.Post
 import com.example.skill_swap_app.model.PostDatabase
 import com.example.skill_swap_app.model.AppDatabase
 import com.example.skill_swap_app.utils.CloudinaryManager
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -152,8 +153,8 @@ class AddPostFragment : Fragment() {
             withContext(Dispatchers.Main) {
                 progressBar.visibility = View.GONE
                 if (!uploadedUrl.isNullOrEmpty()) {
-                    selectedImageUrl = uploadedUrl // שמירת ה-URL החדש
-                    Glide.with(requireContext()).load(uploadedUrl).into(selectedImageView) // הצגת התמונה מהשרת
+                    selectedImageUrl = uploadedUrl // ✅ שמירה מקומית של ה-URL בלבד
+                    Glide.with(requireContext()).load(uploadedUrl).into(selectedImageView)
                     Toast.makeText(requireContext(), "Image uploaded successfully!", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
@@ -163,14 +164,12 @@ class AddPostFragment : Fragment() {
     }
 
 
-    private fun createPost() {
+    private fun savePostWithImageUrl(imageUrl: String) {
         val description = descriptionEditText.text.toString()
         val skillLevel = skillLevelSpinner.selectedItem.toString()
         val phoneNumber = phoneNumberEditText.text.toString()
 
         if (description.isNotEmpty() && phoneNumber.isNotEmpty()) {
-            val imageUrl = selectedImageUrl ?: "default_image_url"
-
             val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
             val userEmail = sharedPreferences.getString("user_email", null)
 
@@ -183,10 +182,11 @@ class AddPostFragment : Fragment() {
                             description = description,
                             skillLevel = skillLevel,
                             phoneNumber = phoneNumber,
-                            imageUrl = imageUrl,
+                            imageUrl = imageUrl, // ✅ שמירת ה-URL במסד הנתונים
                             userId = it.id
                         )
-                        insertPost(post)
+                        insertPost(post) // קריאה לשמירה מקומית ב-Room
+                        savePostToFirestore(post) // קריאה לשמירה מרוחקת ב-Firestore
                     }
                 }
             } else {
@@ -196,6 +196,67 @@ class AddPostFragment : Fragment() {
             Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
         }
     }
+
+
+
+    private fun savePostToFirestore(post: Post) {
+
+        val firestore = FirebaseFirestore.getInstance()
+        val postMap = hashMapOf(
+            "description" to post.description,
+            "skillLevel" to post.skillLevel,
+            "phoneNumber" to post.phoneNumber,
+            "imageUrl" to post.imageUrl, // ✅ שמירת תמונה
+            "userId" to post.userId
+        )
+
+        firestore.collection("posts")
+            .add(postMap)
+            .addOnSuccessListener {
+                Toast.makeText(context, "Post uploaded to Firestore!", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(context, "Failed to upload post to Firestore", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+
+
+
+    private fun createPost() {
+        val description = descriptionEditText.text.toString()
+        val skillLevel = skillLevelSpinner.selectedItem.toString()
+        val phoneNumber = phoneNumberEditText.text.toString()
+
+        if (description.isEmpty() || phoneNumber.isEmpty() || selectedImageUrl.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "Please fill all fields and upload an image", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+        val userEmail = sharedPreferences.getString("user_email", null)
+
+        if (!userEmail.isNullOrEmpty()) {
+            lifecycleScope.launch {
+                val db = AppDatabase.getDatabase(requireContext())
+                val user = db.userDao().getUserByEmail(userEmail)
+                user?.let {
+                    val post = Post(
+                        description = description,
+                        skillLevel = skillLevel,
+                        phoneNumber = phoneNumber,
+                        imageUrl = selectedImageUrl!!, // ✅ עכשיו כבר בטוח שהתמונה קיימת
+                        userId = it.id
+                    )
+                    insertPost(post) // שמירה ב-ROOM
+                    savePostToFirestore(post) // שמירה בפיירסטור
+                }
+            }
+        } else {
+            Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun insertPost(post: Post) {
         lifecycleScope.launch(Dispatchers.IO) {

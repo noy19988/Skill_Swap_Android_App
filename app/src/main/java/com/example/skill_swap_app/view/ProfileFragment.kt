@@ -83,19 +83,20 @@ class ProfileFragment : Fragment() {
         uploadImageButton.setOnClickListener { openImagePicker() }
 
         updateButton.setOnClickListener {
-            val updatedUsername = usernameEditText.text.toString()
-            val updatedPhone = phoneEditText.text.toString()
+            val updatedUsername = usernameEditText.text.toString().trim()
+            val updatedPhone = phoneEditText.text.toString().trim()
 
-            if (updatedUsername.isNotEmpty() && updatedPhone.isNotEmpty()) {
-                user?.let {
-                    it.username = updatedUsername
-                    it.phone = updatedPhone
-                    updateUser(it.id, updatedUsername, updatedPhone)
-                }
-            } else {
-                Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
+            user?.let {
+                val finalUsername = if (updatedUsername.isNotEmpty()) updatedUsername else it.username
+                val finalPhone = if (updatedPhone.isNotEmpty()) updatedPhone else it.phone
+                val finalImageUrl = selectedImageUri?.toString() ?: it.profileImageUrl // ✅ אם לא נבחרה תמונה חדשה, נשמור את הישנה
+
+                updateUser(it.id, finalUsername, finalPhone, finalImageUrl) // ✅ עדכון ב-Room
+                updateUserInFirestore(it.email, finalUsername, finalPhone, finalImageUrl) // ✅ עדכון בפיירסטור
             }
         }
+
+
 
         return view
     }
@@ -127,11 +128,10 @@ class ProfileFragment : Fragment() {
                     progressBar.visibility = View.GONE
                     if (!uploadedUrl.isNullOrEmpty()) {
                         Log.d("Cloudinary", "Upload success: $uploadedUrl")
-                        user?.let {
-                            updateUserProfileImage(it.id, uploadedUrl)
-                        }
+                        selectedImageUri = Uri.parse(uploadedUrl) // ✅ שמירה זמנית של ה-URL
+                        Glide.with(requireContext()).load(uploadedUrl).into(profileImageView)
+                        Toast.makeText(requireContext(), "Image uploaded successfully! Don't forget to save.", Toast.LENGTH_SHORT).show()
                     } else {
-                        Log.e("Cloudinary", "Upload failed: URL is null or empty")
                         Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -144,6 +144,31 @@ class ProfileFragment : Fragment() {
             }
         }
     }
+
+
+    private fun updateUserInFirestore(email: String, username: String, phone: String, imageUrl: String?) {
+        val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+        val userMap = mutableMapOf<String, Any>()
+
+        if (username.isNotEmpty()) userMap["username"] = username
+        if (phone.isNotEmpty()) userMap["phone"] = phone
+        if (!imageUrl.isNullOrEmpty()) userMap["profileImageUrl"] = imageUrl
+
+        if (userMap.isNotEmpty()) {
+            firestore.collection("users").document(email)
+                .update(userMap)
+                .addOnSuccessListener {
+                    Toast.makeText(requireContext(), "Profile updated in Firestore!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener {
+                    Toast.makeText(requireContext(), "Failed to update Firestore", Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
+
+
+
 
 
     private fun getUserFromRoom(userEmail: String?) {
@@ -167,14 +192,16 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun updateUser(userId: Int, updatedUsername: String, updatedPhone: String) {
+    private fun updateUser(userId: Int, updatedUsername: String, updatedPhone: String, imageUrl: String?) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                db.userDao().updateUser(updatedUsername, updatedPhone, userId)
-                activity?.runOnUiThread {
+                db.userDao().updateUserProfile(userId, updatedUsername, updatedPhone, imageUrl ?: "")
+
+                withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "User updated successfully", Toast.LENGTH_SHORT).show()
                     usernameTextView.text = updatedUsername
                     phoneTextView.text = updatedPhone
+                    Glide.with(requireContext()).load(imageUrl).into(profileImageView) // ✅ עדכון תמונת הפרופיל
                     usernameTextView.visibility = View.VISIBLE
                     phoneTextView.visibility = View.VISIBLE
                     usernameEditText.visibility = View.GONE
@@ -183,7 +210,7 @@ class ProfileFragment : Fragment() {
                     uploadImageButton.visibility = View.GONE
                 }
             } catch (e: Exception) {
-                activity?.runOnUiThread {
+                withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "Error updating user", Toast.LENGTH_SHORT).show()
                 }
             }
