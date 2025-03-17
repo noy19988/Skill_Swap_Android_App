@@ -8,6 +8,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.skill_swap_app.R
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
@@ -23,9 +24,12 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        // הגדרת Toolbar כ-ActionBar
+        // בדיקת קיום Toolbar ב-XML
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        toolbar?.let {
+            setSupportActionBar(it)
+            it.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor)) // הגדרת צבע כחול לטולבר
+        }
 
         // אתחול FirebaseAuth
         auth = FirebaseAuth.getInstance()

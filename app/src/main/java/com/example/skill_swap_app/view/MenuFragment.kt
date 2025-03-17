@@ -45,7 +45,6 @@ class MenuFragment : Fragment() {
         // הוספת פריטים לתפריט
         popupMenu.menu.add("User Profile")
         popupMenu.menu.add("My Posts")
-        popupMenu.menu.add("Courses Recommendations")
         popupMenu.menu.add("Favorites")
 
 
@@ -59,10 +58,8 @@ class MenuFragment : Fragment() {
                 "My Posts" -> {
                     findNavController().navigate(R.id.myPostsFragment) // ניווט ל-MyPostsFragment
                     true
-                }
-                "Courses Recommendations" -> {
-                    findNavController().navigate(R.id.coursesRecommendationsFragment) // ניווט ל-coursesRecommendationsFragment
-                    true
+
+
                 }
                 "Favorites" -> {
                     findNavController().navigate(R.id.favoritesFragment) // ניווט ל-FavoritesFragment

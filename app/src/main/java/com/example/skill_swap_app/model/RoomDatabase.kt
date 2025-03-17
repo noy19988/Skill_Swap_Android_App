@@ -11,6 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
+
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null

@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- צבעים בסיסיים -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- צבעים ראשיים (עודכן לכחול כהה) -->
+    <color name="primaryColor">#3700B3</color>  <!-- כחול כהה -->
+    <color name="primaryDarkColor">#3700B3</color>  <!-- כחול כהה יותר -->
+    <color name="accentColor">#03DAC5</color>  <!-- טורקיז Material -->
+
+    <!-- צבעים כלליים -->
+    <color name="backgroundColor">#F5F5F5</color>  <!-- רקע אפור בהיר ונעים לקריאה -->
+    <color name="textColor">#212121</color>  <!-- שחור כהה לקריאה נוחה -->
+    <color name="buttonColor">#2E7D32</color>  <!-- ירוק כהה עבור כפתורים -->
+    <color name="inputFieldColor">#F1F1F1</color>  <!-- רקע לשדות טקסט -->
 </resources>

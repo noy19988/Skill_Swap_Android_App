@@ -12,9 +12,11 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.model.AppDatabase
 import com.example.skill_swap_app.model.User
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,6 +41,11 @@ class RegisterFragment : Fragment() {
         val phoneInput: EditText = view.findViewById(R.id.phone_input)
         val registerButton: Button = view.findViewById(R.id.register_button)
         val progressBar: ProgressBar = view.findViewById(R.id.progressBar)
+
+        val toolbar: MaterialToolbar = view.findViewById(R.id.toolbar)
+        toolbar.setNavigationOnClickListener {
+            findNavController().navigateUp() // חזרה לעמוד הקודם
+        }
 
         registerButton.setOnClickListener {
             val username = usernameInput.text.toString().trim()
@@ -66,8 +73,8 @@ class RegisterFragment : Fragment() {
                                 editor.putString("user_email", email)
                                 editor.apply()
 
-                                // ✅ שמירה גם בפיירסטור
-                                saveUserToFirestore(username, email, phone)
+                                // ✅ שמירה גם בפיירסטור עם ה-ID
+                                saveUserToFirestore(username, email, phone, userId)
                             }
 
                             Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
@@ -83,23 +90,21 @@ class RegisterFragment : Fragment() {
         return view
     }
 
-
-
-
-    private fun saveUserToFirestore(username: String, email: String, phone: String) {
+    private fun saveUserToFirestore(username: String, email: String, phone: String, userId: Int) {
         val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
 
         val userMap = hashMapOf(
             "username" to username,
             "email" to email,
             "phone" to phone,
-            "profileImageUrl" to "" // אפשרות להוסיף תמונת פרופיל מאוחר יותר
+            "profileImageUrl" to "", // אפשרות להוסיף תמונת פרופיל מאוחר יותר
+            "id" to userId // ✅ הוספת ה-ID
         )
 
         firestore.collection("users").document(email)
             .set(userMap)
             .addOnSuccessListener {
-                Log.d("RegisterFragment", "User added to Firestore: $email")
+                Log.d("RegisterFragment", "User added to Firestore: $email (ID: $userId)")
             }
             .addOnFailureListener { e ->
                 Log.e("RegisterFragment", "Failed to add user to Firestore", e)

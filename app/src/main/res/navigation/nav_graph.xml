@@ -91,13 +91,6 @@
             app:destination="@id/editDeletePostFragment" />
     </fragment>
 
-    <!-- Courses Recommendations Fragment -->
-    <fragment
-        android:id="@+id/coursesRecommendationsFragment"
-        android:name="com.example.skill_swap_app.view.CourseListFragment"
-        android:label="Courses Recommendations"
-        tools:layout="@layout/fragment_course_list" />
-
     <!-- Favorites Fragment -->
     <fragment
         android:id="@+id/favoritesFragment"

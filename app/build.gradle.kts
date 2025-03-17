@@ -76,8 +76,10 @@ dependencies {
     implementation(libs.logging.interceptor)
     implementation(libs.okhttp)
 
+    implementation(libs.circleimageview)
+
     // ✅ Cloudinary - עדכון לתלות ישירה
-    implementation("com.cloudinary:cloudinary-android:2.0.0") // נסה גרסה זו
+    implementation(libs.cloudinary.android.v200) // נסה גרסה זו
     // ניתן לנסות גם גרסאות ישנות יותר אם עדיין לא עובד:
     // implementation("com.cloudinary:cloudinary-android:1.31.0")
 

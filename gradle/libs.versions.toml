@@ -2,7 +2,9 @@
 agp = "8.7.3"
 androidDebugDatabase = "1.0.6"
 cardview = "1.0.0"
+circleimageview = "3.1.0"
 cloudinaryAndroid = "2.1.1"
+cloudinaryAndroidVersion = "2.0.0"
 compiler = "4.12.0"
 constraintlayoutVersion = "2.1.4"
 converterGson = "2.9.0"
@@ -52,7 +54,9 @@ androidx-navigation-ui-ktx-v272 = { module = "androidx.navigation:navigation-ui-
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
 cloudinary-android = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroid" }
+cloudinary-android-v200 = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroidVersion" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 debug-db = { module = "com.amitshekhar.android:debug-db", version.ref = "debugDb" }

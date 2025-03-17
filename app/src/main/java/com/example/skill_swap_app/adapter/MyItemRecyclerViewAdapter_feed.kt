@@ -7,12 +7,14 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.databinding.ItemPostBinding
 import com.example.skill_swap_app.model.Post
 import com.example.skill_swap_app.model.PostDao
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,6 +57,7 @@ class MyItemRecyclerViewAdapter_feed(
                 postDao.updatePost(item)
             }
         }
+        loadProfileImage(item.userId, holder.profileImageView, holder.itemView.context) // קריאה לפונקצייה
     }
 
     override fun getItemCount(): Int = values.size
@@ -65,11 +68,40 @@ class MyItemRecyclerViewAdapter_feed(
         val phoneNumberTextView: TextView = binding.phoneNumberTextView
         val imageView: ImageView = binding.imageView
         val mainCheckBox: CheckBox = binding.root.findViewById(R.id.mainCheckBox)
+        val profileImageView: ImageView = binding.profileImageView // שימוש ב binding
     }
 
     // ❗ פונקציה שמביאה את ה-ID של המשתמש המחובר מה- SharedPreferences
     private fun getCurrentUserId(context: Context): Int? {
         val sharedPreferences = context.getSharedPreferences("user_data", Context.MODE_PRIVATE)
         return sharedPreferences.getInt("user_id", -1).takeIf { it != -1 }
+    }
+
+    private fun loadProfileImage(userId: Int, imageView: ImageView, context: Context) {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("users").whereEqualTo("id", userId).get()
+            .addOnSuccessListener { documents ->
+                if (documents.size() > 0) {
+                    val userDocument = documents.documents[0]
+                    val profileImageUrl = userDocument.getString("profileImageUrl")
+                    if (!profileImageUrl.isNullOrEmpty()) {
+                        Log.d("FeedAdapter", "Loading profile image from: $profileImageUrl")
+                        Glide.with(context)
+                            .load(profileImageUrl)
+                            .into(imageView)
+                            .onLoadFailed(ContextCompat.getDrawable(context, R.drawable.default_profile_picture))
+                    } else {
+                        Log.w("FeedAdapter", "Profile image URL is empty for user: $userId")
+                        imageView.setImageResource(R.drawable.default_profile_picture)
+                    }
+                } else {
+                    Log.w("FeedAdapter", "User document not found for user: $userId")
+                    imageView.setImageResource(R.drawable.default_profile_picture)
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("FeedAdapter", "Error loading profile image", exception)
+                imageView.setImageResource(R.drawable.default_profile_picture)
+            }
     }
 }
