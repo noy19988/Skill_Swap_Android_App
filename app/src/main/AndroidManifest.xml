@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
 
-    <!-- הרשאות לרשת -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -20,9 +19,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Skill_Swap_App"
         tools:targetApi="34"
-        tools:replace="android:fullBackupContent"> <!-- ✅ פתרון לשגיאת המניפסט -->
+        tools:replace="android:fullBackupContent">
 
-        <!-- הגדרת MainActivity -->
         <activity
             android:name=".view.MainActivity"
             android:exported="true">
@@ -32,11 +30,5 @@
             </intent-filter>
         </activity>
 
-        <!-- דוגמת meta-data אם תשתמש ב-API נוסף -->
-        <!--
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_API_KEY" />
-        -->
     </application>
 </manifest>

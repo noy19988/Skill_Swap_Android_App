@@ -4,7 +4,6 @@
     android:orientation="horizontal"
     android:padding="8dp">
 
-    <!-- כל התוכן (תיאור הפוסט, רמת מיומנות, טלפון ותמונה) -->
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="0dp"

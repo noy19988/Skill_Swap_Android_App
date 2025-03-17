@@ -15,7 +15,7 @@ import com.bumptech.glide.Glide
 
 
 class MyItemRecyclerViewAdapter_my_posts(
-    private val values: List<Post> // פריטי הפוסט
+    private val values: List<Post>
 ) : RecyclerView.Adapter<MyItemRecyclerViewAdapter_my_posts.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -26,21 +26,18 @@ class MyItemRecyclerViewAdapter_my_posts(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = values[position]
 
-        // הצגת הנתונים בעזרת ה-ViewHolder
         holder.descriptionTextView.text = item.description
         holder.skillLevelTextView.text = item.skillLevel
         holder.phoneNumberTextView.text = item.phoneNumber
 
-        // הצגת התמונה בעזרת Glide (נדרש להוסיף dependency ל-Glide אם זה לא קיים)
         Glide.with(holder.itemView.context)
-            .load(item.imageUrl) // נסה לשים את ה-URL של התמונה פה
+            .load(item.imageUrl)
             .into(holder.imageView)
 
-        // הגדרת OnClickListener למעבר לעמוד EditDeletePostFragment
 
         holder.itemView.setOnClickListener {
             val bundle = Bundle()
-            bundle.putInt("postId", item.id) // העברת ה-ID של הפוסט
+            bundle.putInt("postId", item.id)
             holder.itemView.findNavController().navigate(R.id.action_myPostsFragment_to_editDeletePostFragment, bundle)
         }
     }

@@ -25,12 +25,12 @@ class CloudinaryManager(private val context: Context) {
         return withContext(Dispatchers.IO) {
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)
-                val uniqueFileName = "image_${UUID.randomUUID()}.jpg" // יצירת שם קובץ ייחודי
+                val uniqueFileName = "image_${UUID.randomUUID()}.jpg"
                 val uploadResult = cloudinary.uploader().upload(
                     inputStream,
                     ObjectUtils.asMap(
-                        "public_id", uniqueFileName,  // מזהה ייחודי לתמונה
-                        "folder", "SkillSwap_Images", // שמירה בתיקייה ב-Cloudinary
+                        "public_id", uniqueFileName,
+                        "folder", "SkillSwap_Images",
                         "resource_type", "image"
                     )
                 )

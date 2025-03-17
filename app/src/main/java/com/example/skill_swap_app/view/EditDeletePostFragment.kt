@@ -36,7 +36,7 @@ class EditDeletePostFragment : Fragment() {
     private lateinit var selectedImageView: ImageView
     private lateinit var uploadImageButton: Button
 
-    private val IMAGE_REQUEST_CODE = 1001 // קוד בקשת התמונות
+    private val IMAGE_REQUEST_CODE = 1001
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,10 +44,8 @@ class EditDeletePostFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_edit_delete_post, container, false)
 
-        // קבלת ה-`postId` מה-bundle
         postId = arguments?.getInt("postId") ?: 0
 
-        // אתחול של הדאטה בייס
         db = PostDatabase.getDatabase(requireContext())
 
         descriptionEditText = view.findViewById(R.id.description_edittext)
@@ -58,20 +56,16 @@ class EditDeletePostFragment : Fragment() {
         selectedImageView = view.findViewById(R.id.selected_image_view)
         uploadImageButton = view.findViewById(R.id.upload_image_button)
 
-        // נטען את הפוסט ממסד הנתונים
         loadPostData(postId)
 
-        // כפתור עדכון פוסט
         postButton.setOnClickListener {
             updatePost()
         }
 
-        // כפתור מחיקת פוסט
         deleteButton.setOnClickListener {
             deletePost()
         }
 
-        // כפתור העלאת תמונה
         uploadImageButton.setOnClickListener {
             uploadImage()
         }
@@ -79,28 +73,23 @@ class EditDeletePostFragment : Fragment() {
         return view
     }
 
-    // שליפת נתוני הפוסט
     private fun loadPostData(postId: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
-            val post = db.postDao().getPostById(postId) // שליפת הפוסט לפי ה-ID
+            val post = db.postDao().getPostById(postId)
             post?.let {
                 activity?.runOnUiThread {
-                    // מילוי השדות עם המידע של הפוסט
                     descriptionEditText.setText(it.description)
                     phoneNumberEditText.setText(it.phoneNumber)
 
                     Log.d("EditDeletePostFragment", "Skill Level: ${it.skillLevel}")
 
-                    // הנחת רמת מיומנות ב-Spinner
                     val skillLevelPosition = getSkillLevelPosition(it.skillLevel)
                     skillLevelSpinner.setSelection(skillLevelPosition)
 
-                    // הצגת התמונה בעזרת Glide
                     Glide.with(this@EditDeletePostFragment)
-                        .load(it.imageUrl) // הנח את ה-URL של התמונה
+                        .load(it.imageUrl)
                         .into(selectedImageView)
 
-                    // אם התמונה קיימת, הגדר את ה-`tag` של התמונה
                     selectedImageView.tag = it.imageUrl
                 }
             } ?: run {
@@ -111,7 +100,6 @@ class EditDeletePostFragment : Fragment() {
         }
     }
 
-    // קבלת מיקום רמת המיומנות ב-Spinner
     private fun getSkillLevelPosition(skillLevel: String): Int {
         return when (skillLevel) {
             "Slightly" -> 0
@@ -121,30 +109,26 @@ class EditDeletePostFragment : Fragment() {
         }
     }
 
-    // עדכון הפוסט
     private fun updatePost() {
         val updatedDescription = descriptionEditText.text.toString()
         val updatedPhoneNumber = phoneNumberEditText.text.toString()
         val updatedSkillLevel = skillLevelSpinner.selectedItem.toString()
 
-        // אם ה-`tag` של התמונה הוא null, השתמש במחרוזת ריקה או ערך ברירת מחדל
         val updatedImageUrl = selectedImageView.tag?.toString() ?: ""
 
-        // שליפת ה-`userId` הנוכחי של הפוסט
         lifecycleScope.launch(Dispatchers.IO) {
             val post = db.postDao().getPostById(postId)
             post?.let {
-                val userId = it.userId  // שמירת ה-`userId` המקורי
+                val userId = it.userId
                 val updatedPost = Post(
                     id = postId,
                     description = updatedDescription,
                     skillLevel = updatedSkillLevel,
                     phoneNumber = updatedPhoneNumber,
                     imageUrl = updatedImageUrl,
-                    userId = userId  // שימור ה-`userId` המקורי
+                    userId = userId
                 )
 
-                // עדכון הפוסט במסד הנתונים
                 db.postDao().updatePost(updatedPost)
                 activity?.runOnUiThread {
                     Toast.makeText(requireContext(), "Post updated successfully", Toast.LENGTH_SHORT).show()
@@ -154,7 +138,6 @@ class EditDeletePostFragment : Fragment() {
         }
     }
 
-    // מחיקת פוסט
     private fun deletePost() {
         lifecycleScope.launch(Dispatchers.IO) {
             db.postDao().deletePost(postId)
@@ -165,13 +148,11 @@ class EditDeletePostFragment : Fragment() {
         }
     }
 
-    // העלאת תמונה מהגלריה
     private fun uploadImage() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, IMAGE_REQUEST_CODE)
     }
 
-    // טיפול בתוצאה מהגלריה או המצלמה
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -179,9 +160,8 @@ class EditDeletePostFragment : Fragment() {
             val imageUri: Uri? = data?.data
             selectedImageView.setImageURI(imageUri)
 
-            // שמור את ה-URI של התמונה
-            val updatedImageUrl = imageUri.toString() // עדכן את ה-URL של התמונה
-            selectedImageView.tag = updatedImageUrl // שמור את ה-URL בתג
+            val updatedImageUrl = imageUri.toString()
+            selectedImageView.tag = updatedImageUrl
         }
     }
 }

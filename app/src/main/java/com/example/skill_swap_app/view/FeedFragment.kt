@@ -27,7 +27,7 @@ class FeedFragment : Fragment() {
 
     private var columnCount = 1
     private lateinit var spinner: Spinner
-    private lateinit var searchView: SearchView  // הגדרת המשתנה SearchView
+    private lateinit var searchView: SearchView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,30 +43,25 @@ class FeedFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_feed_list, container, false)
 
-        // הוספת MenuFragment
         val menuFragment = MenuFragment()
         childFragmentManager.beginTransaction()
             .replace(R.id.menu_fragment_container, menuFragment)
             .commit()
 
-        // קישור ל-Spinner
         spinner = view.findViewById(R.id.spinner)
         val skillLevels = arrayOf("All", "Beginner", "Intermediate", "Expert")
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, skillLevels)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
 
-        // קישור ל-SearchView
-        searchView = view.findViewById(R.id.searchView)  // קישור ל-SearchView מתוך ה-XML
+        searchView = view.findViewById(R.id.searchView)
 
-        // חיבור RecyclerView
         val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view)
         recyclerView.layoutManager = when {
             columnCount <= 1 -> LinearLayoutManager(context)
             else -> GridLayoutManager(context, columnCount)
         }
 
-        // מביא את הפוסטים עם רמת המיומנות שנבחרה
         loadPosts(spinner.selectedItem.toString()) { posts ->
             if (posts.isEmpty()) {
                 recyclerView.visibility = View.GONE
@@ -76,13 +71,11 @@ class FeedFragment : Fragment() {
             }
         }
 
-        // כפתור להוספת פוסט
         val addPostButton: ImageButton = view.findViewById(R.id.add_post_button)
         addPostButton.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_addPostFragment)
         }
 
-        // מאזין לשינוי בסינון רמת המיומנות
         spinner.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 loadPosts(spinner.selectedItem.toString()) { posts ->
@@ -91,19 +84,15 @@ class FeedFragment : Fragment() {
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
-                // טיפול במצב שבו לא נבחר פריט
             }
         })
 
-        // מאזין לשדה החיפוש
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                // לא נדרש לבצע פעולה כאשר לוחצים על Enter
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                // סינון הפוסטים לפי הטקסט שהוקלד
                 filterPosts(newText, recyclerView)
                 return true
             }
@@ -119,7 +108,7 @@ class FeedFragment : Fragment() {
                 if (skillLevel == "All") {
                     db.postDao().getAllPosts()
                 } else {
-                    db.postDao().getPostsBySkillLevel(skillLevel)  // סינון לפי רמת מיומנות
+                    db.postDao().getPostsBySkillLevel(skillLevel)
                 }
             }
             callback(posts)
@@ -131,7 +120,6 @@ class FeedFragment : Fragment() {
             val posts = withContext(Dispatchers.IO) {
                 val db = PostDatabase.getDatabase(requireContext())
                 val allPosts = db.postDao().getAllPosts()
-                // סינון הפוסטים לפי טקסט החיפוש
                 val filteredPosts = allPosts.filter { it.description.contains(query ?: "", ignoreCase = true) }
                 filteredPosts
             }

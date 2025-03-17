@@ -66,13 +66,12 @@ class AddPostFragment : Fragment() {
         selectedImageView = view.findViewById(R.id.selected_image_view)
         progressBar = view.findViewById(R.id.progressBar)
 
-        cloudinaryManager = CloudinaryManager(requireContext()) // יצירת מופע של CloudinaryManager
+        cloudinaryManager = CloudinaryManager(requireContext())
 
         arguments?.getString("selectedImageUrl")?.let {
             selectedImageUrl = it
             Glide.with(this).load(it).into(selectedImageView)
 
-            // ✅ להוריד ולהעלות את התמונה לקלאודינרי
             lifecycleScope.launch {
                 downloadAndUploadImage(it)
             }
@@ -119,7 +118,6 @@ class AddPostFragment : Fragment() {
             selectedImageUrl = null
             Toast.makeText(requireContext(), "Uploading image...", Toast.LENGTH_SHORT).show()
 
-            // 🔄 התחלת העלאת התמונה ל-Cloudinary
             uploadImageToCloudinary(selectedImageUri!!)
         }
     }
@@ -153,7 +151,7 @@ class AddPostFragment : Fragment() {
             withContext(Dispatchers.Main) {
                 progressBar.visibility = View.GONE
                 if (!uploadedUrl.isNullOrEmpty()) {
-                    selectedImageUrl = uploadedUrl // ✅ שמירה מקומית של ה-URL בלבד
+                    selectedImageUrl = uploadedUrl
                     Glide.with(requireContext()).load(uploadedUrl).into(selectedImageView)
                     Toast.makeText(requireContext(), "Image uploaded successfully!", Toast.LENGTH_SHORT).show()
                 } else {
@@ -182,11 +180,11 @@ class AddPostFragment : Fragment() {
                             description = description,
                             skillLevel = skillLevel,
                             phoneNumber = phoneNumber,
-                            imageUrl = imageUrl, // ✅ שמירת ה-URL במסד הנתונים
+                            imageUrl = imageUrl,
                             userId = it.id
                         )
-                        insertPost(post) // קריאה לשמירה מקומית ב-Room
-                        savePostToFirestore(post) // קריאה לשמירה מרוחקת ב-Firestore
+                        insertPost(post)
+                        savePostToFirestore(post)
                     }
                 }
             } else {
@@ -206,7 +204,7 @@ class AddPostFragment : Fragment() {
             "description" to post.description,
             "skillLevel" to post.skillLevel,
             "phoneNumber" to post.phoneNumber,
-            "imageUrl" to post.imageUrl, // ✅ שמירת תמונה
+            "imageUrl" to post.imageUrl,
             "userId" to post.userId
         )
 
@@ -245,11 +243,11 @@ class AddPostFragment : Fragment() {
                         description = description,
                         skillLevel = skillLevel,
                         phoneNumber = phoneNumber,
-                        imageUrl = selectedImageUrl!!, // ✅ עכשיו כבר בטוח שהתמונה קיימת
+                        imageUrl = selectedImageUrl!!,
                         userId = it.id
                     )
-                    insertPost(post) // שמירה ב-ROOM
-                    savePostToFirestore(post) // שמירה בפיירסטור
+                    insertPost(post)
+                    savePostToFirestore(post)
                 }
             }
         } else {

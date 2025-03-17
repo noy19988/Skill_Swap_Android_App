@@ -42,14 +42,13 @@ class MyItemRecyclerViewAdapter_feed(
 
         val currentUserId = getCurrentUserId(holder.itemView.context) ?: 0
 
-        holder.mainCheckBox.setOnCheckedChangeListener(null) // מניעת קריאה חוזרת
+        holder.mainCheckBox.setOnCheckedChangeListener(null)
 
-        // ✅ הצ'קבוקס מסומן רק אם המשתמש הנוכחי סימן אותו כמועדף
         holder.mainCheckBox.isChecked = item.isFavorite && item.favoritedByUserId == currentUserId
 
         holder.mainCheckBox.setOnCheckedChangeListener { _, isChecked ->
             item.isFavorite = isChecked
-            item.favoritedByUserId = if (isChecked) currentUserId else null  // ✅ שמירת המשתמש שסימן
+            item.favoritedByUserId = if (isChecked) currentUserId else null
 
             Log.d("FeedAdapter", "Updating post ${item.id} - isFavorite: $isChecked, favoritedByUserId: ${item.favoritedByUserId}")
 
@@ -57,7 +56,7 @@ class MyItemRecyclerViewAdapter_feed(
                 postDao.updatePost(item)
             }
         }
-        loadProfileImage(item.userId, holder.profileImageView, holder.itemView.context) // קריאה לפונקצייה
+        loadProfileImage(item.userId, holder.profileImageView, holder.itemView.context)
     }
 
     override fun getItemCount(): Int = values.size
@@ -68,10 +67,9 @@ class MyItemRecyclerViewAdapter_feed(
         val phoneNumberTextView: TextView = binding.phoneNumberTextView
         val imageView: ImageView = binding.imageView
         val mainCheckBox: CheckBox = binding.root.findViewById(R.id.mainCheckBox)
-        val profileImageView: ImageView = binding.profileImageView // שימוש ב binding
+        val profileImageView: ImageView = binding.profileImageView
     }
 
-    // ❗ פונקציה שמביאה את ה-ID של המשתמש המחובר מה- SharedPreferences
     private fun getCurrentUserId(context: Context): Int? {
         val sharedPreferences = context.getSharedPreferences("user_data", Context.MODE_PRIVATE)
         return sharedPreferences.getInt("user_id", -1).takeIf { it != -1 }

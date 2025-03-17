@@ -12,17 +12,16 @@ class MenuAdapter(
 ) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MenuViewHolder {
-        // יצירת TextView פריט בצורה דינמית
         val textView = TextView(parent.context).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            setPadding(32, 24, 32, 24) // Padding פנימי
+            setPadding(32, 24, 32, 24)
             textSize = 18f
             setTextColor(Color.BLACK)
-            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_hamburger_menu, 0, 0, 0) // אייקון בצד שמאל
-            compoundDrawablePadding = 16 // מרווח בין האייקון לטקסט
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_hamburger_menu, 0, 0, 0)
+            compoundDrawablePadding = 16
         }
         return MenuViewHolder(textView)
     }

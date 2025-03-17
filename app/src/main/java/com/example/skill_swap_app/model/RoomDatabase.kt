@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [User::class], version = 4, exportSchema = false)  // שדרוג גרסה ל-4
+@Database(entities = [User::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
@@ -23,14 +23,13 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "skill_swap_db"
                 )
-                    .addMigrations(MIGRATION_3_4)  // הוספת מיגרציה
+                    .addMigrations(MIGRATION_3_4)
                     .build()
                 INSTANCE = instance
                 instance
             }
         }
 
-        // מיגרציה לגרסה 4: הוספת עמודה profileImageUrl בטבלת users
         private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE users ADD COLUMN profileImageUrl TEXT")

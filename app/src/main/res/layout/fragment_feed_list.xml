@@ -3,23 +3,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="0dp">  <!-- לא נשאר שום Padding -->
+    android:padding="0dp">
 
-    <!-- מיכל ל-MenuFragment -->
     <FrameLayout
         android:id="@+id/menu_fragment_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="0dp" /> <!-- לא נשאר שום Margin -->
+        android:layout_margin="0dp" />
 
-    <!-- RecyclerView דבוק לחלוטין לחלק העליון ולצדדים -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" /> <!-- RecyclerView ממלא את כל השטח ללא רווחים -->
+        android:layout_weight="1" />
 
-    <!-- כפתור להוספת פוסט -->
     <ImageButton
         android:id="@+id/add_post_button"
         android:layout_width="43dp"
@@ -33,17 +30,15 @@
         android:visibility="visible"
         tools:visibility="visible" />
 
-    <!-- Spinner - לסינון רמות מיומנות -->
     <Spinner
         android:id="@+id/spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" /> <!-- רווח מהתחתית של ה-Recyclerview -->
+        android:layout_marginTop="8dp" />
 
-    <!-- SearchView -->
     <SearchView
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" /> <!-- רווח מה-Spinner -->
+        android:layout_marginTop="8dp" />
 </LinearLayout>

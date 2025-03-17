@@ -11,5 +11,5 @@ data class User(
     var username: String,
     val email: String,
     var phone: String,
-    var profileImageUrl: String? = null  // שדה חדש לתמונת הפרופיל
+    var profileImageUrl: String? = null
 ) : Serializable

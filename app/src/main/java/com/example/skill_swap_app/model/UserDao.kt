@@ -8,7 +8,7 @@ import androidx.room.Update
 @Dao
 interface UserDao {
     @Insert
-    suspend fun insertUser(user: User): Long  // ✅ מחזיר את ה-ID של המשתמש שנוסף
+    suspend fun insertUser(user: User): Long
 
     @Query("SELECT * FROM users WHERE email = :email")
     suspend fun getUserByEmail(email: String): User?
@@ -17,7 +17,7 @@ interface UserDao {
     suspend fun updateUser(username: String, phone: String, id: Int)
 
     @Query("UPDATE users SET profileImageUrl = :profileImageUrl WHERE id = :id")
-    suspend fun updateUserProfileImage(id: Int, profileImageUrl: String)  // עדכון תמונת משתמש
+    suspend fun updateUserProfileImage(id: Int, profileImageUrl: String)
 
     @Query("DELETE FROM users WHERE id = :id")
     suspend fun deleteUserById(id: Int)

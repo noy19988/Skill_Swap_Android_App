@@ -82,7 +82,6 @@ class ProfileFragment : Fragment() {
             updateButton.visibility = View.VISIBLE
             uploadImageButton.visibility = View.VISIBLE
 
-            // הפיכת השדות לזמינים
             usernameEditText.isFocusableInTouchMode = true
             usernameEditText.isFocusable = true
             usernameEditText.isEnabled = true
@@ -91,7 +90,6 @@ class ProfileFragment : Fragment() {
             phoneEditText.isFocusable = true
             phoneEditText.isEnabled = true
 
-            // הוספת פוקוס ופתיחת מקלדת
             usernameEditText.post {
                 usernameEditText.requestFocus()
                 val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

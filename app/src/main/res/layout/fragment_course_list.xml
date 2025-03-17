@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".view.CourseListFragment">
 
-    <!-- RecyclerView להצגת כל הקורסים -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/course_recycler_view"
         android:layout_width="match_parent"

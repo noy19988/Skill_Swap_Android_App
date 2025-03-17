@@ -42,11 +42,10 @@ class MyPostsFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_my_posts_list, container, false)
 
-        // Retrieve user email from SharedPreferences
         val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
         userEmail = sharedPreferences.getString("user_email", null)
 
-        Log.d("MyPostsFragment", "User Email: $userEmail")  // לוג לצפייה ב-Email של המשתמש
+        Log.d("MyPostsFragment", "User Email: $userEmail")
 
         getUserPosts(userEmail)
 
@@ -58,7 +57,7 @@ class MyPostsFragment : Fragment() {
             try {
                 val user = db2.userDao().getUserByEmail(userEmail.orEmpty())
                 if (user != null) {
-                    Log.d("MyPostsFragment", "User ID: ${user.id}")  // לוג לצפייה ב-userId
+                    Log.d("MyPostsFragment", "User ID: ${user.id}")
 
                     // Fetch the posts of this user from the database
                     val userPosts = db1.postDao().getPostsByUserId(user.id)

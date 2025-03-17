@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     app:startDestination="@id/loginFragment">
 
-    <!-- Login Fragment -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.skill_swap_app.view.LoginFragment"
@@ -17,14 +16,12 @@
             app:destination="@id/feedFragment" />
     </fragment>
 
-    <!-- Register Fragment -->
     <fragment
         android:id="@+id/registerFragment"
         android:name="com.example.skill_swap_app.view.RegisterFragment"
         android:label="Register"
         tools:layout="@layout/fragment_register" />
 
-    <!-- Feed Fragment -->
     <fragment
         android:id="@+id/feedFragment"
         android:name="com.example.skill_swap_app.view.FeedFragment"
@@ -38,14 +35,12 @@
             app:destination="@id/addPostFragment" />
     </fragment>
 
-    <!-- Menu Fragment -->
     <fragment
         android:id="@+id/menuFragment"
         android:name="com.example.skill_swap_app.view.MenuFragment"
         android:label="Menu"
         tools:layout="@layout/fragment_menu" />
 
-    <!-- Edit/Delete Post Fragment -->
     <fragment
         android:id="@+id/editDeletePostFragment"
         android:name="com.example.skill_swap_app.view.EditDeletePostFragment"
@@ -55,7 +50,6 @@
             app:argType="integer"/>
     </fragment>
 
-    <!-- AddPost Fragment -->
     <fragment
         android:id="@+id/addPostFragment"
         android:name="com.example.skill_swap_app.view.AddPostFragment"
@@ -66,10 +60,9 @@
             app:destination="@id/feedFragment" />
         <action
             android:id="@+id/action_addPostFragment_to_photoListFragment"
-            app:destination="@id/photoListFragment" /> <!-- ניווט ל-PhotoListFragment -->
+            app:destination="@id/photoListFragment" />
     </fragment>
 
-    <!-- User Profile Fragment -->
     <fragment
         android:id="@+id/userProfileFragment"
         android:name="com.example.skill_swap_app.view.ProfileFragment"
@@ -80,7 +73,6 @@
             app:destination="@id/loginFragment" />
     </fragment>
 
-    <!-- My Posts Fragment -->
     <fragment
         android:id="@+id/myPostsFragment"
         android:name="com.example.skill_swap_app.view.MyPostsFragment"
@@ -91,14 +83,12 @@
             app:destination="@id/editDeletePostFragment" />
     </fragment>
 
-    <!-- Favorites Fragment -->
     <fragment
         android:id="@+id/favoritesFragment"
         android:name="com.example.skill_swap_app.view.FavoritesFragment"
         android:label="Favorites"
         tools:layout="@layout/fragment_favorites" />
 
-    <!-- Photo List Fragment for Unsplash -->
     <fragment
         android:id="@+id/photoListFragment"
         android:name="com.example.skill_swap_app.view.PhotoListFragment"
@@ -106,6 +96,6 @@
         tools:layout="@layout/fragment_photo_list">
         <action
             android:id="@+id/action_photoListFragment_to_addPostFragment"
-            app:destination="@id/addPostFragment" /> <!-- חזרה ל-AddPostFragment -->
+            app:destination="@id/addPostFragment" />
     </fragment>
 </navigation>

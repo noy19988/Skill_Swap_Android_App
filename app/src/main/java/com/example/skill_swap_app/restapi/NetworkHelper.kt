@@ -17,14 +17,13 @@ object NetworkHelper {
 
     private val apiService = retrofit.create(UnsplashApiService::class.java)
 
-    // פונקציה לחיפוש תמונות מ-Unsplash
     fun getImages(query: String, apiKey: String, page: Int, callback: (List<Photo>?) -> Unit) {
-        val call = apiService.searchPhotos(query, page, 30) // שינוי לקריאה המתאימה
+        val call = apiService.searchPhotos(query, page, 30)
 
-        call.enqueue(object : Callback<UnsplashSearchResponse> { // שינוי ל-UnsplashSearchResponse
+        call.enqueue(object : Callback<UnsplashSearchResponse> {
             override fun onResponse(call: Call<UnsplashSearchResponse>, response: Response<UnsplashSearchResponse>) {
                 if (response.isSuccessful) {
-                    val photoList = response.body()?.results // מקבל את התוצאות מה-UnsplashSearchResponse
+                    val photoList = response.body()?.results
                     callback(photoList)
                 } else {
                     callback(null)

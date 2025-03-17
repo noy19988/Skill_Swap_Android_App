@@ -44,7 +44,7 @@ class RegisterFragment : Fragment() {
 
         val toolbar: MaterialToolbar = view.findViewById(R.id.toolbar)
         toolbar.setNavigationOnClickListener {
-            findNavController().navigateUp() // חזרה לעמוד הקודם
+            findNavController().navigateUp()
         }
 
         registerButton.setOnClickListener {
@@ -73,7 +73,6 @@ class RegisterFragment : Fragment() {
                                 editor.putString("user_email", email)
                                 editor.apply()
 
-                                // ✅ שמירה גם בפיירסטור עם ה-ID
                                 saveUserToFirestore(username, email, phone, userId)
                             }
 
@@ -97,8 +96,8 @@ class RegisterFragment : Fragment() {
             "username" to username,
             "email" to email,
             "phone" to phone,
-            "profileImageUrl" to "", // אפשרות להוסיף תמונת פרופיל מאוחר יותר
-            "id" to userId // ✅ הוספת ה-ID
+            "profileImageUrl" to "",
+            "id" to userId
         )
 
         firestore.collection("users").document(email)

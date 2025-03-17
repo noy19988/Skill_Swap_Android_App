@@ -12,12 +12,10 @@ import com.example.skill_swap_app.R
 class PhotoAdapter(private var photos: List<Photo>, val onItemSelected: (Photo) -> Unit) :
     RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
 
-    // פונקציה שמעדכנת את התמונות
     fun updatePhotos(newPhotos: List<Photo>) {
-        // אם התמונות החדשות שונות מהקיימות, עדכן
         if (photos != newPhotos) {
             photos = newPhotos
-            notifyDataSetChanged() // עדכון ה-RecyclerView
+            notifyDataSetChanged()
         }
     }
 
@@ -33,7 +31,7 @@ class PhotoAdapter(private var photos: List<Photo>, val onItemSelected: (Photo) 
             .into(holder.imageView)
 
         holder.itemView.setOnClickListener {
-            onItemSelected(photo) // שליחת התמונה שנבחרה
+            onItemSelected(photo)
         }
     }
 

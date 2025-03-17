@@ -6,5 +6,5 @@ data class Photo(
 )
 
 data class Urls(
-    val regular: String // ה-URL של התמונה בגודל רגיל
+    val regular: String
 )

@@ -57,7 +57,7 @@ class LoginFragment : Fragment() {
                                 if (user != null) {
                                     Log.d("LoginFragment", "User found: $user")
 
-                                    // ✅ שמירת userId בזיכרון (SharedPreferences)
+
                                     val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
                                     val editor = sharedPreferences.edit()
                                     editor.putInt("user_id", user.id)

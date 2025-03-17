@@ -58,7 +58,7 @@ class FavoritesFragment : Fragment() {
         lifecycleScope.launch {
             val posts = withContext(Dispatchers.IO) {
                 val db = PostDatabase.getDatabase(requireContext())
-                db.postDao().getFavoritePosts(currentUserId)  // ✅ טעינה לפי `userId`
+                db.postDao().getFavoritePosts(currentUserId)
             }
             recyclerView.adapter = MyItemRecyclerViewAdapter_favorites(posts)
         }

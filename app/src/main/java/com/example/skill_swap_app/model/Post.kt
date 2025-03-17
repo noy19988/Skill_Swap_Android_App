@@ -11,7 +11,7 @@ data class Post(
     val skillLevel: String,
     val phoneNumber: String,
     val imageUrl: String,
-    val userId: Int,  // 🔹 מזהה המשתמש שיצר את הפוסט
+    val userId: Int,  
     var isFavorite: Boolean = false,
-    var favoritedByUserId: Int? = null  // 🔹 מזהה המשתמש שסימן את הפוסט כפייבוריט
+    var favoritedByUserId: Int? = null
 )

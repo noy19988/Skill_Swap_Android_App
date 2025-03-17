@@ -19,15 +19,13 @@ class MenuFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_menu, container, false)
 
-        // חיבור Toolbar
         val toolbar: Toolbar = view.findViewById(R.id.toolbar)
         toolbar.inflateMenu(R.menu.menu)
 
-        // הגדרת לחיצה על Hamburger Menu
         toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_hamburger -> {
-                    showPopupMenu(toolbar) // פותח PopupMenu
+                    showPopupMenu(toolbar)
                     true
                 }
                 else -> false
@@ -42,27 +40,25 @@ class MenuFragment : Fragment() {
 
         popupMenu.gravity = android.view.Gravity.END
 
-        // הוספת פריטים לתפריט
         popupMenu.menu.add("User Profile")
         popupMenu.menu.add("My Posts")
         popupMenu.menu.add("Favorites")
 
 
-        // טיפול בלחיצה על פריטים
         popupMenu.setOnMenuItemClickListener { item ->
             when (item.title) {
                 "User Profile" -> {
-                    findNavController().navigate(R.id.userProfileFragment) // ניווט ל-UserProfileFragment
+                    findNavController().navigate(R.id.userProfileFragment)
                     true
                 }
                 "My Posts" -> {
-                    findNavController().navigate(R.id.myPostsFragment) // ניווט ל-MyPostsFragment
+                    findNavController().navigate(R.id.myPostsFragment)
                     true
 
 
                 }
                 "Favorites" -> {
-                    findNavController().navigate(R.id.favoritesFragment) // ניווט ל-FavoritesFragment
+                    findNavController().navigate(R.id.favoritesFragment)
                     true
                 }
                 else -> false

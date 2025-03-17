@@ -68,26 +68,19 @@ dependencies {
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
-    // Retrofit for networking
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
 
-    // OkHttp for logging HTTP requests
     implementation(libs.logging.interceptor)
     implementation(libs.okhttp)
 
     implementation(libs.circleimageview)
 
-    // ✅ Cloudinary - עדכון לתלות ישירה
-    implementation(libs.cloudinary.android.v200) // נסה גרסה זו
-    // ניתן לנסות גם גרסאות ישנות יותר אם עדיין לא עובד:
-    // implementation("com.cloudinary:cloudinary-android:1.31.0")
+    implementation(libs.cloudinary.android.v200)
 
-    // ViewModel and LiveData
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
 
-    // Coroutine for background tasks
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.androidx.cardview)

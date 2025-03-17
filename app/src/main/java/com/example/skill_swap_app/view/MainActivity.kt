@@ -19,40 +19,33 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // הגדרת עיצוב זמני לפני טעינת ה- UI
         setTheme(R.style.Theme_Skill_Swap_App)
 
         setContentView(R.layout.activity_main)
 
-        // בדיקת קיום Toolbar ב-XML
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         toolbar?.let {
             setSupportActionBar(it)
-            it.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor)) // הגדרת צבע כחול לטולבר
+            it.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
         }
 
-        // אתחול FirebaseAuth
         auth = FirebaseAuth.getInstance()
 
-        // בדיקה אם המשתמש מחובר לפני טעינת הניווט
         checkUserAuthentication()
     }
 
     private fun checkUserAuthentication() {
         val user = auth.currentUser
 
-        // חיבור NavHostFragment – רק אחרי הבדיקה
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.fragment_container) as NavHostFragment
         navController = navHostFragment.navController
         setupActionBarWithNavController(navController)
 
         if (user != null) {
-            // המשתמש מחובר → מעבר ישיר לפיד
             navController.navigate(R.id.feedFragment)
         }
 
-        // הצגת ה- UI רק אחרי הבדיקה
         findViewById<View>(R.id.fragment_container).visibility = View.VISIBLE
     }
 

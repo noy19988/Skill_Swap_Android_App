@@ -11,7 +11,7 @@ import com.example.skill_swap_app.R
 import com.example.skill_swap_app.model.Post
 
 class MyItemRecyclerViewAdapter_favorites(
-    private val values: List<Post>  // רשימה של פוסטים אהובים
+    private val values: List<Post>
 ) : RecyclerView.Adapter<MyItemRecyclerViewAdapter_favorites.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -22,16 +22,14 @@ class MyItemRecyclerViewAdapter_favorites(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = values[position]
 
-        // ✅ הצגת פרטי הפוסט
         holder.descriptionTextView.text = item.description
         holder.skillLevelTextView.text = item.skillLevel
         holder.phoneNumberTextView.text = item.phoneNumber
 
-        // ✅ טעינת תמונה עם Glide
         Glide.with(holder.itemView.context)
-            .load(item.imageUrl) // ה-URL של התמונה
-            .placeholder(R.drawable.placeholder_image) // תמונה זמנית בזמן טעינה
-            .error(R.drawable.placeholder_image) // תמונה במקרה של שגיאה
+            .load(item.imageUrl)
+            .placeholder(R.drawable.placeholder_image)
+            .error(R.drawable.placeholder_image)
             .into(holder.imageView)
     }
 
@@ -43,6 +41,6 @@ class MyItemRecyclerViewAdapter_favorites(
         val descriptionTextView: TextView = binding.findViewById(R.id.descriptionTextView)
         val skillLevelTextView: TextView = binding.findViewById(R.id.skillLevelTextView)
         val phoneNumberTextView: TextView = binding.findViewById(R.id.phoneNumberTextView)
-        val imageView: ImageView = binding.findViewById(R.id.postImageView) // ✅ וידוא שהתמונה מוצגת
+        val imageView: ImageView = binding.findViewById(R.id.postImageView)
     }
 }
