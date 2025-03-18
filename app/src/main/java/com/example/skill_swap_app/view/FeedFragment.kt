@@ -1,5 +1,6 @@
 package com.example.skill_swap_app.view
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,7 @@ import android.widget.ImageButton
 import android.widget.Spinner
 import android.widget.ArrayAdapter
 import android.widget.AdapterView
+import android.widget.ImageView
 import android.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -15,10 +17,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.adapter.MyItemRecyclerViewAdapter_feed
 import com.example.skill_swap_app.model.Post
 import com.example.skill_swap_app.model.PostDatabase
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,6 +32,8 @@ class FeedFragment : Fragment() {
     private var columnCount = 1
     private lateinit var spinner: Spinner
     private lateinit var searchView: SearchView
+    private lateinit var profileImageViewHeader: ImageView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +48,12 @@ class FeedFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_feed_list, container, false)
+        profileImageViewHeader = view.findViewById(R.id.profile_image_view_header)
+        loadCurrentUserProfileImage()
+
+        profileImageViewHeader.setOnClickListener {
+            // לא עושים כלום כאשר לוחצים על תמונת הפרופיל
+        }
 
         val menuFragment = MenuFragment()
         childFragmentManager.beginTransaction()
@@ -100,6 +112,37 @@ class FeedFragment : Fragment() {
 
         return view
     }
+
+
+    private fun loadCurrentUserProfileImage() {
+        val sharedPreferences = requireContext().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+        val userEmail = sharedPreferences.getString("user_email", null)
+
+        if (userEmail != null) {
+            val firestore = FirebaseFirestore.getInstance()
+            firestore.collection("users").document(userEmail).get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val profileImageUrl = document.getString("profileImageUrl")
+                        if (!profileImageUrl.isNullOrEmpty()) {
+                            Glide.with(requireContext())
+                                .load(profileImageUrl)
+                                .into(profileImageViewHeader)
+                        } else {
+                            profileImageViewHeader.setImageResource(R.drawable.default_profile_picture)
+                        }
+                    } else {
+                        profileImageViewHeader.setImageResource(R.drawable.default_profile_picture)
+                    }
+                }
+                .addOnFailureListener {
+                    profileImageViewHeader.setImageResource(R.drawable.default_profile_picture)
+                }
+        } else {
+            profileImageViewHeader.setImageResource(R.drawable.default_profile_picture)
+        }
+    }
+
 
     private fun loadPosts(skillLevel: String, callback: (List<Post>) -> Unit) {
         lifecycleScope.launch {
