@@ -2,7 +2,10 @@ package com.example.skill_swap_app.utils
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.cloudinary.Cloudinary
+import com.cloudinary.android.MediaManager
+import com.cloudinary.android.callback.ErrorInfo
 import com.cloudinary.utils.ObjectUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,6 +41,20 @@ class CloudinaryManager(private val context: Context) {
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
+            }
+        }
+    }
+
+    suspend fun deleteImage(publicId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val result = cloudinary.uploader().destroy(
+                    publicId,
+                    ObjectUtils.asMap("resource_type", "image")
+                )
+                Log.d("Cloudinary", "Delete success: $publicId, Result: $result")
+            } catch (e: Exception) {
+                Log.e("Cloudinary", "Delete error: ${e.message}")
             }
         }
     }

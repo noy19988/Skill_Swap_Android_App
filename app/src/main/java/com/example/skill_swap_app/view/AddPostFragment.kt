@@ -162,60 +162,61 @@ class AddPostFragment : Fragment() {
     }
 
 
-    private fun savePostWithImageUrl(imageUrl: String) {
-        val description = descriptionEditText.text.toString()
-        val skillLevel = skillLevelSpinner.selectedItem.toString()
-        val phoneNumber = phoneNumberEditText.text.toString()
 
-        if (description.isNotEmpty() && phoneNumber.isNotEmpty()) {
-            val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
-            val userEmail = sharedPreferences.getString("user_email", null)
+    private fun savePostToFirestore(postId: Int) { // שינוי: קבלת postId
+        val firestore = FirebaseFirestore.getInstance()
+        lifecycleScope.launch(Dispatchers.IO){
+            val db = PostDatabase.getDatabase(requireContext())
+            val post = db.postDao().getPostById(postId)
+            withContext(Dispatchers.Main){
+                if(post != null){
+                    val postMap = hashMapOf(
+                        "description" to post.description,
+                        "skillLevel" to post.skillLevel,
+                        "phoneNumber" to post.phoneNumber,
+                        "imageUrl" to post.imageUrl,
+                        "userId" to post.userId
+                    )
 
-            if (!userEmail.isNullOrEmpty()) {
-                lifecycleScope.launch {
-                    val db = AppDatabase.getDatabase(requireContext())
-                    val user = db.userDao().getUserByEmail(userEmail)
-                    user?.let {
-                        val post = Post(
-                            description = description,
-                            skillLevel = skillLevel,
-                            phoneNumber = phoneNumber,
-                            imageUrl = imageUrl,
-                            userId = it.id
-                        )
-                        insertPost(post)
-                        savePostToFirestore(post)
-                    }
+                    firestore.collection("posts")
+                        .add(postMap)
+                        .addOnSuccessListener { documentReference ->
+                            val firestoreId = documentReference.id
+                            Log.d("AddPostFragment", "Firestore post created with id: $firestoreId")
+                            Toast.makeText(context, "Post uploaded to Firestore!", Toast.LENGTH_SHORT).show()
+
+                            updatePostInRoomWithFirestoreId(postId, firestoreId)
+                            Log.d("AddPostFragment", "Updated Room post with firestoreId: $firestoreId")
+                            findNavController().navigate(R.id.action_addPostFragment_to_feedFragment)
+
+                        }
+                        .addOnFailureListener {
+                            Log.e("AddPostFragment", "Failed to upload post to Firestore: ${it.message}")
+                            Toast.makeText(context, "Failed to upload post to Firestore", Toast.LENGTH_SHORT).show()
+                        }
                 }
-            } else {
-                Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
             }
-        } else {
-            Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
         }
     }
 
 
+    private fun updatePostInRoomWithFirestoreId(postId: Int, firestoreId: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val db = PostDatabase.getDatabase(requireContext())
+                val post = db.postDao().getPostById(postId)
 
-    private fun savePostToFirestore(post: Post) {
-
-        val firestore = FirebaseFirestore.getInstance()
-        val postMap = hashMapOf(
-            "description" to post.description,
-            "skillLevel" to post.skillLevel,
-            "phoneNumber" to post.phoneNumber,
-            "imageUrl" to post.imageUrl,
-            "userId" to post.userId
-        )
-
-        firestore.collection("posts")
-            .add(postMap)
-            .addOnSuccessListener {
-                Toast.makeText(context, "Post uploaded to Firestore!", Toast.LENGTH_SHORT).show()
+                if (post != null) {
+                    val updatedPost = post.copy(firestoreId = firestoreId)
+                    db.postDao().updatePost(updatedPost)
+                    Log.d("AddPostFragment", "Updated Room post with firestoreId: $firestoreId")
+                } else {
+                    Log.e("AddPostFragment", "Post with id $postId not found in Room")
+                }
+            } catch (e: Exception) {
+                Log.e("AddPostFragment", "Error updating Room post: ${e.message}")
             }
-            .addOnFailureListener {
-                Toast.makeText(context, "Failed to upload post to Firestore", Toast.LENGTH_SHORT).show()
-            }
+        }
     }
 
 
@@ -246,8 +247,11 @@ class AddPostFragment : Fragment() {
                         imageUrl = selectedImageUrl!!,
                         userId = it.id
                     )
-                    insertPost(post)
-                    savePostToFirestore(post)
+                    val postId = withContext(Dispatchers.IO) {
+                        PostDatabase.getDatabase(requireContext()).postDao().insertPost(post)
+                    }
+                    Log.d("AddPostFragment", "Post created in Room with id: $postId")
+                    savePostToFirestore(postId.toInt()) // העברת postId
                 }
             }
         } else {

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Post::class], version = 4, exportSchema = false)
+@Database(entities = [Post::class], version = 5, exportSchema = false) // Updated version to 5
 abstract class PostDatabase : RoomDatabase() {
     abstract fun postDao(): PostDao
 
@@ -22,16 +22,16 @@ abstract class PostDatabase : RoomDatabase() {
                     PostDatabase::class.java,
                     "skill_swap_post_db"
                 )
-                    .addMigrations(MIGRATION_3_4)
+                    .addMigrations(MIGRATION_4_5) // Updated migration
                     .build()
                 INSTANCE = instance
                 instance
             }
         }
 
-        private val MIGRATION_3_4 = object : Migration(3, 4) {
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE posts ADD COLUMN favoritedByUserId INTEGER DEFAULT NULL")
+                database.execSQL("ALTER TABLE posts ADD COLUMN firestoreId TEXT")
             }
         }
     }

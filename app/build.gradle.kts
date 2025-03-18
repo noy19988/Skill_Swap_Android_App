@@ -43,6 +43,7 @@ android {
 
 dependencies {
     implementation(libs.glide)
+    implementation(libs.firebase.storage.ktx)
     annotationProcessor(libs.compiler)
     implementation(libs.picasso)
 

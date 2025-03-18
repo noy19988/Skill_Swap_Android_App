@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -33,6 +34,9 @@
         <action
             android:id="@+id/action_feedFragment_to_addPostFragment"
             app:destination="@id/addPostFragment" />
+        <action
+            android:id="@+id/action_feedFragment_to_editPostFragment"
+            app:destination="@id/editPostFragment" />
     </fragment>
 
     <fragment
@@ -40,6 +44,19 @@
         android:name="com.example.skill_swap_app.view.MenuFragment"
         android:label="Menu"
         tools:layout="@layout/fragment_menu" />
+
+    <fragment
+        android:id="@+id/editPostFragment"
+        android:name="com.example.skill_swap_app.view.EditPostFragment"
+        android:label="Edit Post"
+        tools:layout="@layout/fragment_add_post">
+        <argument
+            android:name="postId"
+            app:argType="integer"/>
+        <action
+            android:id="@+id/action_editPostFragment_to_feedFragment"
+            app:destination="@id/feedFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/editDeletePostFragment"
@@ -98,4 +115,5 @@
             android:id="@+id/action_photoListFragment_to_addPostFragment"
             app:destination="@id/addPostFragment" />
     </fragment>
+
 </navigation>

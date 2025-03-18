@@ -7,10 +7,9 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [User::class], version = 4, exportSchema = false)
+@Database(entities = [User::class], version = 5, exportSchema = false) // Updated version to 5
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
-
 
     companion object {
         @Volatile
@@ -23,16 +22,16 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "skill_swap_db"
                 )
-                    .addMigrations(MIGRATION_3_4)
+                    .addMigrations(MIGRATION_4_5) // Updated migration
                     .build()
                 INSTANCE = instance
                 instance
             }
         }
 
-        private val MIGRATION_3_4 = object : Migration(3, 4) {
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE users ADD COLUMN profileImageUrl TEXT")
+                // Add any necessary migration code here, or leave it empty if there are no specific changes
             }
         }
     }

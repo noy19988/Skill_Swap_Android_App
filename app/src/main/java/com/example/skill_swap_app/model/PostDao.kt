@@ -7,8 +7,9 @@ import androidx.room.Update
 
 @Dao
 interface PostDao {
+
     @Insert
-    suspend fun insertPost(post: Post)
+    suspend fun insertPost(post: Post): Long // שינוי: החזרת Long (id)
 
     @Query("SELECT * FROM posts")
     suspend fun getAllPosts(): List<Post>
@@ -21,6 +22,7 @@ interface PostDao {
 
     @Query("SELECT * FROM posts WHERE id = :postId")
     suspend fun getPostById(postId: Int): Post
+
 
     @Update
     suspend fun updatePost(post: Post)

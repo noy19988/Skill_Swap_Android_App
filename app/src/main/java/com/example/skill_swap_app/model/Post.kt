@@ -13,5 +13,6 @@ data class Post(
     val imageUrl: String,
     val userId: Int,  
     var isFavorite: Boolean = false,
-    var favoritedByUserId: Int? = null
+    var favoritedByUserId: Int? = null,
+    val firestoreId: String? = null
 )

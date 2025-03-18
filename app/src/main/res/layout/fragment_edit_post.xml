@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" />
+
+    <Button
+        android:id="@+id/upload_image_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upload Image" />
+
+    <Button
+        android:id="@+id/upload_image_from_unsplash_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upload Image from Unsplash" />
+
+    <ImageView
+        android:id="@+id/selected_image_view"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:src="@android:drawable/ic_menu_camera" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:padding="8dp">
+
+        <EditText
+            android:id="@+id/description_edittext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description"
+            android:inputType="textMultiLine"
+            android:gravity="top|start"
+            android:scrollbars="vertical"
+            android:lines="5"
+            android:maxLines="10"
+            android:minLines="3"
+            android:focusableInTouchMode="true"/>
+    </ScrollView>
+
+    <Spinner
+        android:id="@+id/skill_level_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:entries="@array/skill_levels" />
+
+    <EditText
+        android:id="@+id/phone_number_edittext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Phone Number"
+        android:inputType="phone"
+        android:focusableInTouchMode="true"/>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/post_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Post" />
+</LinearLayout>

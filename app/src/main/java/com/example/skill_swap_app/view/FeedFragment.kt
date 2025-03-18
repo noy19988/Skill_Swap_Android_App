@@ -2,6 +2,7 @@ package com.example.skill_swap_app.view
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -79,7 +80,7 @@ class FeedFragment : Fragment() {
                 recyclerView.visibility = View.GONE
             } else {
                 recyclerView.visibility = View.VISIBLE
-                recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts, PostDatabase.getDatabase(requireContext()).postDao())
+                recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList(), PostDatabase.getDatabase(requireContext()).postDao())
             }
         }
 
@@ -91,7 +92,7 @@ class FeedFragment : Fragment() {
         spinner.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 loadPosts(spinner.selectedItem.toString()) { posts ->
-                    recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts, PostDatabase.getDatabase(requireContext()).postDao())
+                    recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList(), PostDatabase.getDatabase(requireContext()).postDao())
                 }
             }
 
@@ -148,13 +149,17 @@ class FeedFragment : Fragment() {
         lifecycleScope.launch {
             val posts = withContext(Dispatchers.IO) {
                 val db = PostDatabase.getDatabase(requireContext())
-                if (skillLevel == "All") {
+                val postsList = if (skillLevel == "All") {
                     db.postDao().getAllPosts()
                 } else {
                     db.postDao().getPostsBySkillLevel(skillLevel)
                 }
+                postsList.forEach {
+                    Log.d("FeedFragment", "Post from Room: id=${it.id}, firestoreId=${it.firestoreId}")
+                }
+                postsList
             }
-            callback(posts)
+            callback(posts.toMutableList())
         }
     }
 
@@ -166,7 +171,7 @@ class FeedFragment : Fragment() {
                 val filteredPosts = allPosts.filter { it.description.contains(query ?: "", ignoreCase = true) }
                 filteredPosts
             }
-            recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts, PostDatabase.getDatabase(requireContext()).postDao())
+            recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList(), PostDatabase.getDatabase(requireContext()).postDao())
         }
     }
 
