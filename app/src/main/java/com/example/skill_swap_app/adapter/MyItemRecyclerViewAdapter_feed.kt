@@ -26,7 +26,6 @@ import kotlinx.coroutines.launch
 
 class MyItemRecyclerViewAdapter_feed(
     private val values: MutableList<Post>,
-    private val postDao: PostDao
 ) : RecyclerView.Adapter<MyItemRecyclerViewAdapter_feed.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -57,9 +56,16 @@ class MyItemRecyclerViewAdapter_feed(
 
             Log.d("FeedAdapter", "Updating post ${item.id} - isFavorite: $isChecked, favoritedByUserId: ${item.favoritedByUserId}")
 
-            CoroutineScope(Dispatchers.IO).launch {
-                postDao.updatePost(item)
-            }
+            val firestore = FirebaseFirestore.getInstance()
+            firestore.collection("posts").document(item.firestoreId ?: "default_id")
+                .update("isFavorite", item.isFavorite, "favoritedByUserId", item.favoritedByUserId)
+                .addOnSuccessListener {
+                    Log.d("FeedAdapter", "Post updated in Firestore: ${item.firestoreId}")
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("FeedAdapter", "Error updating post in Firestore", exception)
+                }
+
         }
         loadProfileImage(item.userId, holder.profileImageView, holder.itemView.context)
 
@@ -83,7 +89,9 @@ class MyItemRecyclerViewAdapter_feed(
 
                                     if (!item.firestoreId.isNullOrEmpty()) {
                                         deletePostFromFirestore(item.firestoreId)
-                                        deletePostFromRoom(item.id)
+                                        /*
+                                                                                deletePostFromRoom(item.id)
+                                        */
                                         if (item.imageUrl.startsWith("gs://") || item.imageUrl.startsWith("https://firebasestorage.googleapis.com/")) {
                                             deletePostFromStorage(item.imageUrl)
                                         } else {
@@ -171,11 +179,12 @@ class MyItemRecyclerViewAdapter_feed(
             }
     }
 
-    private fun deletePostFromRoom(postId: Int) {
+    /*private fun deletePostFromRoom(postId: Int) {
         CoroutineScope(Dispatchers.IO).launch {
             postDao.deletePost(postId)
         }
-    }
+    }*/
+
 
     private fun deletePostFromStorage(imageUrl: String) {
         val storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)

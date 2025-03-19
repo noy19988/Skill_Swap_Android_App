@@ -108,7 +108,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Enter Phone Number"
                     android:textSize="16sp"
-                    android:inputType="phone"
+                    android:inputType="number"
                     android:visibility="gone" />
         </LinearLayout>
 

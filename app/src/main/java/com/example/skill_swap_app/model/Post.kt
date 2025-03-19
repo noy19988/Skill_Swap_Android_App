@@ -11,7 +11,7 @@ data class Post(
     val skillLevel: String,
     val phoneNumber: String,
     val imageUrl: String,
-    val userId: Int,  
+    val userId: Int,
     var isFavorite: Boolean = false,
     var favoritedByUserId: Int? = null,
     val firestoreId: String? = null

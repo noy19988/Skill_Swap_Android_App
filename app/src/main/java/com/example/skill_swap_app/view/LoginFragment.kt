@@ -6,23 +6,19 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.skill_swap_app.R
-import com.example.skill_swap_app.model.AppDatabase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LoginFragment : Fragment() {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var db: AppDatabase
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,7 +27,6 @@ class LoginFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_login, container, false)
 
         auth = FirebaseAuth.getInstance()
-        db = AppDatabase.getDatabase(requireContext())
 
         val emailInput: EditText = view.findViewById(R.id.email_input)
         val passwordInput: EditText = view.findViewById(R.id.password_input)
@@ -52,20 +47,15 @@ class LoginFragment : Fragment() {
                     .addOnCompleteListener { task ->
                         progressBar.visibility = View.GONE
                         if (task.isSuccessful) {
-                            lifecycleScope.launch(Dispatchers.IO) {
-                                val user = db.userDao().getUserByEmail(email)
-                                if (user != null) {
-                                    Log.d("LoginFragment", "User found: $user")
+                            val loggedInUserEmail = auth.currentUser?.email
+                            Log.d("LoginFragment", "Login successful! User email: $loggedInUserEmail")
 
-
-                                    val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
-                                    val editor = sharedPreferences.edit()
-                                    editor.putInt("user_id", user.id)
-                                    editor.putString("user_email", email)
-                                    editor.apply()
-                                } else {
-                                    Log.e("LoginFragment", "User not found in Room Database")
-                                }
+                            if (loggedInUserEmail != null) {
+                                saveUserEmailToSharedPreferences(loggedInUserEmail)
+                                fetchUserDataFromFirestore(loggedInUserEmail)
+                            } else {
+                                Log.e("LoginFragment", "Error: FirebaseAuth returned null email")
+                                Toast.makeText(context, "Failed to retrieve user email", Toast.LENGTH_SHORT).show()
                             }
 
                             Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
@@ -83,5 +73,43 @@ class LoginFragment : Fragment() {
         }
 
         return view
+    }
+
+    private fun saveUserEmailToSharedPreferences(email: String) {
+        val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("user_email", email)
+        editor.apply()
+
+        // בדיקה שהערך באמת נשמר
+        val savedEmail = sharedPreferences.getString("user_email", "NOT FOUND")
+        Log.d("LoginFragment", "User email saved in SharedPreferences: $savedEmail")
+    }
+
+    private fun fetchUserDataFromFirestore(email: String) {
+        FirebaseFirestore.getInstance().collection("users").document(email).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    Log.d("LoginFragment", "User data found in Firestore: ${document.data}")
+
+                    val username = document.getString("username") ?: ""
+                    val phone = document.getString("phone") ?: ""
+                    val profileImageUrl = document.getString("profileImageUrl") ?: ""
+
+                    val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+                    val editor = sharedPreferences.edit()
+                    editor.putString("username", username)
+                    editor.putString("phone", phone)
+                    editor.putString("profileImageUrl", profileImageUrl)
+                    editor.apply()
+
+                    Log.d("LoginFragment", "User data saved in SharedPreferences")
+                } else {
+                    Log.e("LoginFragment", "User not found in Firestore")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("LoginFragment", "Failed to fetch user from Firestore", e)
+            }
     }
 }

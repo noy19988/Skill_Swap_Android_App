@@ -9,7 +9,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -45,9 +44,8 @@ class ProfileFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
-
 
         profileImageView = view.findViewById(R.id.profile_image_view)
         uploadImageButton = view.findViewById(R.id.upload_image_button)
@@ -69,32 +67,17 @@ class ProfileFragment : Fragment() {
         val logoutButton: Button = view.findViewById(R.id.logout_button)
         logoutButton.setOnClickListener { logoutUser() }
 
-        val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
-        val userEmail = sharedPreferences.getString("user_email", null)
+        val firebaseUser = FirebaseAuth.getInstance().currentUser
+        val userEmail = firebaseUser?.email
 
-        getUserFromRoom(userEmail)
+        if (userEmail != null) {
+            getUserFromFirestore(userEmail)
+        } else {
+            Toast.makeText(requireContext(), "User email not found!", Toast.LENGTH_SHORT).show()
+        }
 
         editButton.setOnClickListener {
-            usernameTextView.visibility = View.GONE
-            phoneTextView.visibility = View.GONE
-            usernameEditText.visibility = View.VISIBLE
-            phoneEditText.visibility = View.VISIBLE
-            updateButton.visibility = View.VISIBLE
-            uploadImageButton.visibility = View.VISIBLE
-
-            usernameEditText.isFocusableInTouchMode = true
-            usernameEditText.isFocusable = true
-            usernameEditText.isEnabled = true
-
-            phoneEditText.isFocusableInTouchMode = true
-            phoneEditText.isFocusable = true
-            phoneEditText.isEnabled = true
-
-            usernameEditText.post {
-                usernameEditText.requestFocus()
-                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.showSoftInput(usernameEditText, InputMethodManager.SHOW_IMPLICIT)
-            }
+            enableEditing()
         }
 
         uploadImageButton.setOnClickListener { openImagePicker() }
@@ -108,13 +91,31 @@ class ProfileFragment : Fragment() {
                 val finalPhone = if (updatedPhone.isNotEmpty()) updatedPhone else it.phone
                 val finalImageUrl = selectedImageUri?.toString() ?: it.profileImageUrl
 
-                updateUser(it.id, finalUsername, finalPhone, finalImageUrl)
                 updateUserInFirestore(it.email, finalUsername, finalPhone, finalImageUrl)
             }
         }
 
         return view
     }
+
+    private fun enableEditing() {
+        usernameTextView.visibility = View.GONE
+        phoneTextView.visibility = View.GONE
+        usernameEditText.visibility = View.VISIBLE
+        phoneEditText.visibility = View.VISIBLE
+        updateButton.visibility = View.VISIBLE
+        uploadImageButton.visibility = View.VISIBLE
+
+        // ✅ הפיכת השדות לניתנים לעריכה
+        usernameEditText.isFocusableInTouchMode = true
+        usernameEditText.isFocusable = true
+        usernameEditText.isEnabled = true
+
+        phoneEditText.isFocusableInTouchMode = true
+        phoneEditText.isFocusable = true
+        phoneEditText.isEnabled = true
+    }
+
 
     private fun openImagePicker() {
         val intent = Intent(Intent.ACTION_PICK)
@@ -133,25 +134,79 @@ class ProfileFragment : Fragment() {
         }
     }
 
+
+    private fun getUserFromFirestore(userEmail: String) {
+        FirebaseFirestore.getInstance().collection("users").document(userEmail).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val username = document.getString("username") ?: ""
+                    val phone = document.getString("phone") ?: ""
+                    val profileImageUrl = document.getString("profileImageUrl") ?: ""
+
+                    user = User(username = username, email = userEmail, phone = phone, profileImageUrl = profileImageUrl)
+
+                    // עדכון ממשק המשתמש
+                    usernameTextView.text = username
+                    phoneTextView.text = phone
+                    emailTextView.text = userEmail
+
+                    if (profileImageUrl.isNotEmpty()) {
+                        Glide.with(requireContext()).load(profileImageUrl).into(profileImageView)
+                    }
+
+                    // שמירת הנתונים ב-SharedPreferences כדי שלא יאבדו בחידוש של האפליקציה
+                    val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
+                    with(sharedPreferences.edit()) {
+                        putString("username", username)
+                        putString("phone", phone)
+                        putString("profileImageUrl", profileImageUrl)
+                        apply()
+                    }
+
+                    // עדכון הנתונים גם ב-Room
+                    saveUserToRoom(user!!)
+                } else {
+                    Log.e("ProfileFragment", "User not found in Firestore")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ProfileFragment", "Failed to fetch user from Firestore", e)
+            }
+    }
+
+    private fun saveUserToRoom(user: User) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val existingUser = db.userDao().getUserByEmail(user.email)
+                if (existingUser == null) {
+                    db.userDao().insertUser(user) // הכנסת משתמש חדש
+                    Log.d("ProfileFragment", "User inserted into Room: ${user.email}")
+                } else {
+                    db.userDao().updateUserProfile(existingUser.id, user.username, user.phone, user.profileImageUrl ?: "")
+                    Log.d("ProfileFragment", "User updated in Room: ${user.email}")
+                }
+            } catch (e: Exception) {
+                Log.e("ProfileFragment", "Error saving user to Room", e)
+            }
+        }
+    }
+
+
     private fun uploadImageToCloudinary(uri: Uri) {
         progressBar.visibility = View.VISIBLE
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                Log.d("Cloudinary", "Starting upload for: $uri")
                 val uploadedUrl = cloudinaryManager.uploadImage(uri)
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
                     if (!uploadedUrl.isNullOrEmpty()) {
-                        Log.d("Cloudinary", "Upload success: $uploadedUrl")
-                        selectedImageUri = Uri.parse(uploadedUrl)
-                        Glide.with(requireContext()).load(uploadedUrl).into(profileImageView)
-                        Toast.makeText(requireContext(), "Image uploaded successfully! Don't forget to save.", Toast.LENGTH_SHORT).show()
+                        updateUserInFirestore(user?.email ?: return@withContext, user?.username ?: "", user?.phone ?: "", uploadedUrl)
                     } else {
                         Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
-                Log.e("Cloudinary", "Upload failed with error", e)
+                Log.e("Cloudinary", "Upload failed", e)
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
                     Toast.makeText(requireContext(), "Upload failed: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
@@ -162,122 +217,62 @@ class ProfileFragment : Fragment() {
 
     private fun updateUserInFirestore(email: String, username: String, phone: String, imageUrl: String?) {
         val firestore = FirebaseFirestore.getInstance()
-
         val userMap = mutableMapOf<String, Any>()
 
         if (username.isNotEmpty()) userMap["username"] = username
         if (phone.isNotEmpty()) userMap["phone"] = phone
         if (!imageUrl.isNullOrEmpty()) userMap["profileImageUrl"] = imageUrl
 
-        if (userMap.isNotEmpty()) {
-            firestore.collection("users").document(email)
-                .update(userMap)
-                .addOnSuccessListener {
-                    Toast.makeText(requireContext(), "Profile updated in Firestore!", Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener {
-                    Toast.makeText(requireContext(), "Failed to update Firestore", Toast.LENGTH_SHORT).show()
-                }
-        }
+        firestore.collection("users").document(email)
+            .update(userMap)
+            .addOnSuccessListener {
+                getUserFromFirestore(email)  // ✅ עדכון הנתונים מהשרת
+                Toast.makeText(requireContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show() // ✅ הודעה למשתמש
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "Failed to update profile. Please try again.", Toast.LENGTH_SHORT).show()
+            }
     }
 
-    private fun getUserFromRoom(userEmail: String?) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                userEmail?.let { user = db.userDao().getUserByEmail(it) }
-                activity?.runOnUiThread {
-                    user?.let {
-                        usernameTextView.text = it.username
-                        phoneTextView.text = it.phone
-                        emailTextView.text = it.email
 
-                        if (!it.profileImageUrl.isNullOrEmpty()) {
-                            Glide.with(requireContext()).load(it.profileImageUrl).into(profileImageView)
-                        }
+    private fun deleteUser() {
+        val builder = android.app.AlertDialog.Builder(requireContext())
+        builder.setTitle("Delete Account")
+        builder.setMessage("Are you sure you want to delete your account? This action cannot be undone.")
+
+        builder.setPositiveButton("Yes") { _, _ ->
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    user?.let {
+                        db.userDao().deleteUserById(it.id)  // מחיקת המשתמש מ-Room
+                        FirebaseFirestore.getInstance().collection("users").document(it.email).delete() // מחיקת המשתמש מ-Firestore
+
+                        FirebaseAuth.getInstance().currentUser?.delete() // מחיקת המשתמש מה-Authentication
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(requireContext(), "User deleted successfully", Toast.LENGTH_SHORT).show()
+                        findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(requireContext(), "Error deleting user", Toast.LENGTH_SHORT).show()
                     }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
+
+        builder.setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
+
+        val alertDialog = builder.create()
+        alertDialog.show()
     }
 
-    private fun updateUser(userId: Int, updatedUsername: String, updatedPhone: String, imageUrl: String?) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                db.userDao().updateUserProfile(userId, updatedUsername, updatedPhone, imageUrl ?: "")
-
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "User updated successfully", Toast.LENGTH_SHORT).show()
-                    usernameTextView.text = updatedUsername
-                    phoneTextView.text = updatedPhone
-                    Glide.with(requireContext()).load(imageUrl).into(profileImageView)
-                    usernameTextView.visibility = View.VISIBLE
-                    phoneTextView.visibility = View.VISIBLE
-                    usernameEditText.visibility = View.GONE
-                    phoneEditText.visibility = View.GONE
-                    updateButton.visibility = View.GONE
-                    uploadImageButton.visibility = View.GONE
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Error updating user", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    private fun updateUserProfileImage(userId: Int, imageUrl: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                db.userDao().updateUserProfileImage(userId, imageUrl)
-                activity?.runOnUiThread {
-                    Glide.with(requireContext()).load(imageUrl).into(profileImageView)
-                    Toast.makeText(requireContext(), "Profile image updated successfully", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "Error updating profile image", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
 
     private fun logoutUser() {
         FirebaseAuth.getInstance().signOut()
         Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
         findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
-    }
-
-    private fun deleteUser() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                user?.let {
-                    db.userDao().deleteUserById(it.id)
-                    FirebaseAuth.getInstance().currentUser?.delete()
-                    deleteUserFromFirestore(it.email)
-                }
-                activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "User deleted successfully", Toast.LENGTH_SHORT).show()
-                    findNavController().navigate(R.id.action_profileFragment_to_loginFragment)
-                }
-            } catch (e: Exception) {
-                activity?.runOnUiThread {
-                    Toast.makeText(requireContext(), "Error deleting user", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    private fun deleteUserFromFirestore(email: String) {
-        FirebaseFirestore.getInstance().collection("users").document(email)
-            .delete()
-            .addOnSuccessListener {
-                Log.d("ProfileFragment", "User deleted from Firestore: $email")
-            }
-            .addOnFailureListener { e ->
-                Log.e("ProfileFragment", "Failed to delete user from Firestore", e)
-            }
     }
 
     companion object {

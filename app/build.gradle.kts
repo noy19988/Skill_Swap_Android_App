@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
     id("kotlin-kapt")
     id("com.google.gms.google-services")
+    id ("kotlin-parcelize")
 }
 
 android {
@@ -61,7 +62,6 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
     implementation (libs.firebase.firestore.ktx)
-
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.navigation.fragment.ktx)

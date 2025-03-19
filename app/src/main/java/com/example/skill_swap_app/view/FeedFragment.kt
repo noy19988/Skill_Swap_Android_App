@@ -80,7 +80,7 @@ class FeedFragment : Fragment() {
                 recyclerView.visibility = View.GONE
             } else {
                 recyclerView.visibility = View.VISIBLE
-                recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList(), PostDatabase.getDatabase(requireContext()).postDao())
+                recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList())
             }
         }
 
@@ -92,7 +92,7 @@ class FeedFragment : Fragment() {
         spinner.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 loadPosts(spinner.selectedItem.toString()) { posts ->
-                    recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList(), PostDatabase.getDatabase(requireContext()).postDao())
+                    recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList())
                 }
             }
 
@@ -146,22 +146,42 @@ class FeedFragment : Fragment() {
 
 
     private fun loadPosts(skillLevel: String, callback: (List<Post>) -> Unit) {
-        lifecycleScope.launch {
-            val posts = withContext(Dispatchers.IO) {
-                val db = PostDatabase.getDatabase(requireContext())
-                val postsList = if (skillLevel == "All") {
-                    db.postDao().getAllPosts()
-                } else {
-                    db.postDao().getPostsBySkillLevel(skillLevel)
+        val firestore = FirebaseFirestore.getInstance()
+        val query = if (skillLevel == "All") {
+            firestore.collection("posts")
+        } else {
+            firestore.collection("posts").whereEqualTo("skillLevel", skillLevel)
+        }
+
+        query.get().addOnSuccessListener { documents ->
+            val posts = documents.map { document ->
+                val userIdValue = document.get("userId") // מקבל את הערך כפי שהוא בפועל
+                val userId = when (userIdValue) {
+                    is Number -> userIdValue.toInt() // אם זה מספר, להמיר ל-Int
+                    is String -> userIdValue.toIntOrNull() ?: 0 // אם זה String, להמיר ל-Int
+                    else -> 0 // אם זה לא מספר ולא String, ברירת מחדל 0
                 }
-                postsList.forEach {
-                    Log.d("FeedFragment", "Post from Room: id=${it.id}, firestoreId=${it.firestoreId}")
-                }
-                postsList
+
+                Post(
+                    id = 0,  // Firestore לא משתמש ב-ID של Room
+                    description = document.getString("description") ?: "",
+                    skillLevel = document.getString("skillLevel") ?: "",
+                    phoneNumber = document.getString("phoneNumber") ?: "",
+                    imageUrl = document.getString("imageUrl") ?: "",
+                    userId = userId, // המשתנה המעודכן
+                    isFavorite = false,
+                    favoritedByUserId = null,
+                    firestoreId = document.id
+                )
             }
-            callback(posts.toMutableList())
+            callback(posts)
+        }.addOnFailureListener { exception ->
+            Log.e("FeedFragment", "Error loading posts from Firestore", exception)
+            callback(emptyList())
         }
     }
+
+
 
     private fun filterPosts(query: String?, recyclerView: RecyclerView) {
         lifecycleScope.launch {
@@ -171,7 +191,7 @@ class FeedFragment : Fragment() {
                 val filteredPosts = allPosts.filter { it.description.contains(query ?: "", ignoreCase = true) }
                 filteredPosts
             }
-            recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList(), PostDatabase.getDatabase(requireContext()).postDao())
+            recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList())
         }
     }
 
