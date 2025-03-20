@@ -82,7 +82,7 @@ class FavoritesFragment : Fragment() {
                 Log.w("FavoritesFragment", "No favorite posts found for user: $currentUserEmail")
             }
 
-            recyclerView.adapter = MyItemRecyclerViewAdapter_favorites(posts)
+            recyclerView.adapter = MyItemRecyclerViewAdapter_favorites(posts, requireContext())
         }
     }
 
@@ -96,7 +96,7 @@ class FavoritesFragment : Fragment() {
 
         return try {
             val querySnapshot = firestore.collection("posts")
-                .whereArrayContains("favoritedByUsers", userEmail) // 🔍 לוודא שהשם תואם בדיוק לפיירסטור!
+                .whereArrayContains("favoritedByUsers", userEmail)
                 .get().await()
 
             Log.d("FavoritesFragment", "Found ${querySnapshot.size()} favorite posts in Firestore")

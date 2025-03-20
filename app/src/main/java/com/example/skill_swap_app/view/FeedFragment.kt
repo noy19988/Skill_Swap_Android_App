@@ -55,7 +55,6 @@ class FeedFragment : Fragment() {
         loadCurrentUserProfileImage()
 
         profileImageViewHeader.setOnClickListener {
-            // לא עושים כלום כאשר לוחצים על תמונת הפרופיל
         }
 
         val menuFragment = MenuFragment()

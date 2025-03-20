@@ -73,7 +73,7 @@
         <argument
             android:name="selectedImageUrl"
             app:argType="string"
-            app:nullable="true"/> <!-- ✅ מאפשר קבלת תמונה מ- PhotoListFragment -->
+            app:nullable="true"/>
         <action
             android:id="@+id/action_addPostFragment_to_feedFragment"
             app:destination="@id/feedFragment" />
@@ -122,5 +122,14 @@
             app:destination="@id/editPostFragment" />
     </fragment>
 
+    <fragment
+        android:id="@+id/udemyFragment"
+        android:name="com.example.skill_swap_app.view.UdemyFragment"
+        android:label="Udemy Courses"
+        tools:layout="@layout/fragment_udemy" />
+
+    <action
+        android:id="@+id/action_menuFragment_to_udemyFragment"
+        app:destination="@id/udemyFragment" />
 
 </navigation>

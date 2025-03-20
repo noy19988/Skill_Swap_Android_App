@@ -81,7 +81,6 @@ class LoginFragment : Fragment() {
         editor.putString("user_email", email)
         editor.apply()
 
-        // בדיקה שהערך באמת נשמר
         val savedEmail = sharedPreferences.getString("user_email", "NOT FOUND")
         Log.d("LoginFragment", "User email saved in SharedPreferences: $savedEmail")
     }

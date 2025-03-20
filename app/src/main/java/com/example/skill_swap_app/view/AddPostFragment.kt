@@ -254,7 +254,7 @@ class AddPostFragment : Fragment() {
                         PostDatabase.getDatabase(requireContext()).postDao().insertPost(post)
                     }
                     Log.d("AddPostFragment", "Post created in Room with id: $postId")
-                    savePostToFirestore(postId.toInt()) // העברת postId
+                    savePostToFirestore(postId.toInt())
                 }
             }
         } else {

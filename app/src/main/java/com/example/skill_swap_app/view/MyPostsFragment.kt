@@ -61,7 +61,7 @@ class MyPostsFragment : Fragment() {
 
                     // Fetch the posts of this user from the database
                     val userPosts = db1.postDao().getPostsByUserId(user.id)
-                    Log.d("MyPostsFragment", "Found ${userPosts.size} posts for this user")  // לוג לצפייה במספר הפוסטים
+                    Log.d("MyPostsFragment", "Found ${userPosts.size} posts for this user")
 
                     activity?.runOnUiThread {
                         val recyclerView: RecyclerView = requireView().findViewById(R.id.list)
@@ -69,7 +69,7 @@ class MyPostsFragment : Fragment() {
                         recyclerView.adapter = MyItemRecyclerViewAdapter_my_posts(userPosts)
                     }
                 } else {
-                    Log.d("MyPostsFragment", "No user found with email: $userEmail")  // לוג אם לא נמצא משתמש
+                    Log.d("MyPostsFragment", "No user found with email: $userEmail")
                 }
             } catch (e: Exception) {
                 activity?.runOnUiThread {

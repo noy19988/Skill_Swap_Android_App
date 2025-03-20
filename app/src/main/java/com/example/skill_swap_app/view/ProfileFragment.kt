@@ -50,9 +50,7 @@ class ProfileFragment : Fragment() {
         profileImageView = view.findViewById(R.id.profile_image_view)
         uploadImageButton = view.findViewById(R.id.upload_image_button)
         usernameTextView = view.findViewById(R.id.usernameTextView)
-        usernameEditText = view.findViewById(R.id.usernameEditText)
         phoneTextView = view.findViewById(R.id.phoneTextView)
-        phoneEditText = view.findViewById(R.id.phoneEditText)
         updateButton = view.findViewById(R.id.update_button)
         editButton = view.findViewById(R.id.edit_button)
         emailTextView = view.findViewById(R.id.emailTextView)
@@ -83,38 +81,99 @@ class ProfileFragment : Fragment() {
         uploadImageButton.setOnClickListener { openImagePicker() }
 
         updateButton.setOnClickListener {
-            val updatedUsername = usernameEditText.text.toString().trim()
-            val updatedPhone = phoneEditText.text.toString().trim()
+            val updatedUsername = usernameEditText.text.toString().trim() // קבלת הקלט מתוך EditText
+            val updatedPhone = phoneEditText.text.toString().trim() // קבלת הקלט מתוך EditText
 
             user?.let {
                 val finalUsername = if (updatedUsername.isNotEmpty()) updatedUsername else it.username
                 val finalPhone = if (updatedPhone.isNotEmpty()) updatedPhone else it.phone
                 val finalImageUrl = selectedImageUri?.toString() ?: it.profileImageUrl
 
+                Log.d("ProfileFragment", "Updating Firestore with: Username=$finalUsername, Phone=$finalPhone") // בדיקה
+
                 updateUserInFirestore(it.email, finalUsername, finalPhone, finalImageUrl)
             }
+
+            disableEditing() // חזרה לתצוגה הרגילה לאחר שמירה
         }
+
+
 
         return view
     }
 
     private fun enableEditing() {
-        usernameTextView.visibility = View.GONE
-        phoneTextView.visibility = View.GONE
-        usernameEditText.visibility = View.VISIBLE
-        phoneEditText.visibility = View.VISIBLE
+        val usernameParent = usernameTextView.parent as ViewGroup
+        val phoneParent = phoneTextView.parent as ViewGroup
+
+        // מחיקת TextView והוספת EditText
+        usernameParent.removeView(usernameTextView)
+        phoneParent.removeView(phoneTextView)
+
+        usernameEditText = EditText(requireContext()).apply {
+            id = R.id.usernameTextView
+            layoutParams = usernameTextView.layoutParams
+            setText(usernameTextView.text)
+            textSize = 16f
+            setBackgroundResource(R.drawable.rounded_edittext)
+            setPadding(8, 8, 8, 8)
+        }
+
+        phoneEditText = EditText(requireContext()).apply {
+            id = R.id.phoneTextView
+            layoutParams = phoneTextView.layoutParams
+            setText(phoneTextView.text)
+            textSize = 16f
+            inputType = android.text.InputType.TYPE_CLASS_PHONE
+            setBackgroundResource(R.drawable.rounded_edittext)
+            setPadding(8, 8, 8, 8)
+        }
+
+        usernameParent.addView(usernameEditText)
+        phoneParent.addView(phoneEditText)
+
         updateButton.visibility = View.VISIBLE
         uploadImageButton.visibility = View.VISIBLE
-
-        // ✅ הפיכת השדות לניתנים לעריכה
-        usernameEditText.isFocusableInTouchMode = true
-        usernameEditText.isFocusable = true
-        usernameEditText.isEnabled = true
-
-        phoneEditText.isFocusableInTouchMode = true
-        phoneEditText.isFocusable = true
-        phoneEditText.isEnabled = true
     }
+
+
+    private fun disableEditing() {
+        val updatedUsername = usernameEditText.text.toString().trim()
+        val updatedPhone = phoneEditText.text.toString().trim()
+
+        val usernameParent = usernameEditText.parent as ViewGroup
+        val phoneParent = phoneEditText.parent as ViewGroup
+
+        usernameParent.removeView(usernameEditText)
+        phoneParent.removeView(phoneEditText)
+
+        usernameTextView = TextView(requireContext()).apply {
+            id = R.id.usernameTextView
+            layoutParams = usernameEditText.layoutParams
+            text = updatedUsername  // שימוש בטקסט החדש
+            textSize = 16f
+            setBackgroundResource(android.R.color.transparent)
+            setPadding(8, 8, 8, 8)
+        }
+
+        phoneTextView = TextView(requireContext()).apply {
+            id = R.id.phoneTextView
+            layoutParams = phoneEditText.layoutParams
+            text = updatedPhone  // שימוש בטקסט החדש
+            textSize = 16f
+            setBackgroundResource(android.R.color.transparent)
+            setPadding(8, 8, 8, 8)
+        }
+
+        usernameParent.addView(usernameTextView)
+        phoneParent.addView(phoneTextView)
+
+        updateButton.visibility = View.GONE
+        uploadImageButton.visibility = View.GONE
+    }
+
+
+
 
 
     private fun openImagePicker() {

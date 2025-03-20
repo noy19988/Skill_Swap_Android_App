@@ -5,11 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.example.skill_swap_app.R
 import androidx.appcompat.widget.Toolbar
 import androidx.navigation.fragment.findNavController
+import com.example.skill_swap_app.R
 
 class MenuFragment : Fragment() {
 
@@ -43,7 +42,7 @@ class MenuFragment : Fragment() {
         popupMenu.menu.add("User Profile")
         popupMenu.menu.add("My Posts")
         popupMenu.menu.add("Favorites")
-
+        popupMenu.menu.add("Udemy Courses")
 
         popupMenu.setOnMenuItemClickListener { item ->
             when (item.title) {
@@ -54,11 +53,13 @@ class MenuFragment : Fragment() {
                 "My Posts" -> {
                     findNavController().navigate(R.id.myPostsFragment)
                     true
-
-
                 }
                 "Favorites" -> {
                     findNavController().navigate(R.id.favoritesFragment)
+                    true
+                }
+                "Udemy Courses" -> {
+                    findNavController().navigate(R.id.action_menuFragment_to_udemyFragment)
                     true
                 }
                 else -> false

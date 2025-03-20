@@ -5,9 +5,7 @@
     android:layout_height="match_parent"
     tools:context=".view.PhotoListFragment">
 
-    <!-- שדה חיפוש למשתמש -->
 
-    <!-- RecyclerView להצגת התמונות -->
 
     <EditText
         android:id="@+id/search_edittext"

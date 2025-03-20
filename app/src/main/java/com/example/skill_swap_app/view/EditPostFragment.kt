@@ -75,7 +75,6 @@ class EditPostFragment : Fragment() {
 
         updatePostButton.text = "Update Post"
 
-        // ✅ בדיקה אם יש תמונה חדשה מ-PhotoListFragment
         val newImageUrl = arguments?.getString("selectedImageUrl")
         if (!newImageUrl.isNullOrEmpty()) {
             selectedImageUrl = newImageUrl
@@ -85,7 +84,6 @@ class EditPostFragment : Fragment() {
         Log.d("EditPostFragment", "onViewCreated - selectedImageUrl: $selectedImageUrl")
 
 
-        // ✅ אם זו הפעם הראשונה שנטען הפוסט – טען נתונים מה-Firestore
         if (originalPost == null) {
             firestoreId = arguments?.getString("firestoreId") ?: firestoreId
             loadPostDetails()
@@ -100,7 +98,7 @@ class EditPostFragment : Fragment() {
         uploadImageFromUnsplashButton.setOnClickListener {
             val bundle = Bundle().apply {
                 putString("previousFragment", "EditPostFragment")
-                putString("firestoreId", firestoreId) // 🔥 כדי שנחזור עם אותו ID
+                putString("firestoreId", firestoreId)
             }
             findNavController().navigate(R.id.action_editPostFragment_to_photoListFragment, bundle)
         }
@@ -155,7 +153,7 @@ class EditPostFragment : Fragment() {
                     val post = document.toObject(Post::class.java)
                     if (post != null) {
                         originalPost = post
-                        originalPost = post.copy(firestoreId = firestoreId) // ✅ מעדכן את האובייקט כולו
+                        originalPost = post.copy(firestoreId = firestoreId)
 
                         descriptionEditText.setText(post.description)
                         phoneNumberEditText.setText(post.phoneNumber)
@@ -197,7 +195,7 @@ class EditPostFragment : Fragment() {
                     if (uri != null) {
                         selectedImageUri = data?.data
                         selectedImageView.setImageURI(selectedImageUri)
-                        selectedImageUrl = null // מבטל את ה-URL הקודם אם היה
+                        selectedImageUrl = null
                         uploadImageToCloudinary(selectedImageUri!!)
                     } else {
                         Log.e("EditPostFragment", "Image selection failed - URI is null")
@@ -225,7 +223,6 @@ class EditPostFragment : Fragment() {
 
                 Log.d("EditPostFragment", "Converted URI to File: $fileUri, Exists: ${tempFile.exists()}, Size: ${tempFile.length()} bytes")
 
-                // 2️⃣ שליחת הקובץ לקלאודינרי
                 val uploadedUrl = cloudinaryManager.uploadImage(fileUri)
 
                 withContext(Dispatchers.Main) {
@@ -270,7 +267,7 @@ class EditPostFragment : Fragment() {
             }
         }
 
-        // ניסיון נוסף להשיג נתיב אם הדרך הקודמת נכשלה
+
         return uri.path
     }
 
@@ -303,7 +300,7 @@ class EditPostFragment : Fragment() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             val db = PostDatabase.getDatabase(requireContext())
-            db.postDao().updatePost(updatedPost)  // ✅ עדכון הפוסט ב-Room
+            db.postDao().updatePost(updatedPost)
 
             if (!firestoreId.isNullOrEmpty()) {
                 db.postDao().updatePostByFirestoreId(

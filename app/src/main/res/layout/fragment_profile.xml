@@ -1,17 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:layout_marginTop="80dp">
+    android:padding="24dp"
+    android:layout_marginTop="60dp"
+    android:background="@drawable/gradient_background">
 
         <ImageView
             android:id="@+id/profile_image_view"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:layout_gravity="center"
-            android:src="@drawable/default_profile_picture" />
-
+            android:src="@drawable/default_profile_picture"
+            android:scaleType="centerCrop"
+            android:background="@drawable/rounded_image_background"
+            android:clipToOutline="true" />
 
         <Button
             android:id="@+id/upload_image_button"
@@ -20,120 +24,133 @@
             android:text="Upload Profile Image"
             android:visibility="gone"
             android:layout_gravity="center"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_button"
+            android:textColor="#FFFFFF" />
 
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp" />
 
+        <!-- Email Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/rounded_field_background"
+            android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Email:  "
-                    android:textSize="16sp" />
+                    android:text="Email: "
+                    android:textSize="16sp"
+                    android:textColor="@color/black" />
 
                 <TextView
                     android:id="@+id/emailTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:textColor="@color/black" />
         </LinearLayout>
 
+        <!-- Username Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_field_background"
+            android:padding="16dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Username:  "
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/usernameTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="16sp" />
-                </LinearLayout>
-
-                <EditText
-                    android:id="@+id/usernameEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Enter Username"
+                    android:text="Username: "
                     android:textSize="16sp"
-                    android:visibility="gone" />
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/usernameTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp" />
         </LinearLayout>
 
+        <!-- Phone Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_field_background"
+            android:padding="16dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Phone:  "
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/phoneTextView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="16sp" />
-                </LinearLayout>
-
-                <EditText
-                    android:id="@+id/phoneEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Enter Phone Number"
+                    android:text="Phone: "
                     android:textSize="16sp"
-                    android:inputType="number"
-                    android:visibility="gone" />
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/phoneTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp" />
         </LinearLayout>
 
         <Button
             android:id="@+id/edit_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Edit" />
+            android:text="Edit"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/rounded_button"
+            android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/update_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Update"
-            android:visibility="gone"/>
+            android:visibility="gone"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_button"
+            android:textColor="#FFFFFF" />
+
 
         <Button
             android:id="@+id/delete_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Delete Account"/>
+            android:text="Delete Account"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_button"
+            android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/logout_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Logout"/>
+            android:text="Logout"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/rounded_button"
+            android:textColor="#FFFFFF" />
 </LinearLayout>

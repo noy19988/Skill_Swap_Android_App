@@ -18,7 +18,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_bias="0.3" />
 
-    <!-- שדה אימייל -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/email_input_layout"
         android:layout_width="0dp"
@@ -35,7 +34,6 @@
             android:inputType="textEmailAddress" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- שדה סיסמה -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/password_input_layout"
         android:layout_width="0dp"
@@ -76,7 +74,6 @@
         android:layout_marginTop="8dp"
         style="?attr/borderlessButtonStyle" />
 
-    <!-- טוען נתונים -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"

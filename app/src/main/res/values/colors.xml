@@ -8,6 +8,10 @@
     <color name="primaryColor">#3700B3</color>  <!-- כחול כהה -->
     <color name="primaryDarkColor">#3700B3</color>  <!-- כחול כהה יותר -->
     <color name="accentColor">#03DAC5</color>  <!-- טורקיז Material -->
+    <color name="light_blue">#3287DB</color> <!-- צבע כחול בהיר -->
+    <color name="gray">#A0A0A0</color> <!-- 🎨 הוספת אפור עדין -->
+    <color name="primary">#007BFF</color> <!-- 🎨 כחול כהה לכפתור -->
+
 
     <!-- צבעים כלליים -->
     <color name="backgroundColor">#F5F5F5</color>  <!-- רקע אפור בהיר ונעים לקריאה -->

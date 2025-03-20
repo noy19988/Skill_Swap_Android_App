@@ -206,13 +206,6 @@ class MyItemRecyclerViewAdapter_feed(
     }
 
 
-    /*private fun deletePostFromRoom(postId: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
-            postDao.deletePost(postId)
-        }
-    }*/
-
-
     private fun deletePostFromStorage(imageUrl: String) {
         val storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
         storageReference.delete()
