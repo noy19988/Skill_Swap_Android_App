@@ -33,6 +33,11 @@ interface PostDao {
     @Update
     suspend fun updatePost(post: Post)
 
+
     @Query("DELETE FROM posts WHERE id = :postId")
     suspend fun deletePost(postId: Int)
+
+    @Query("UPDATE posts SET description = :description, skillLevel = :skillLevel, phoneNumber = :phoneNumber, imageUrl = :imageUrl WHERE firestoreId = :firestoreId")
+    suspend fun updatePostByFirestoreId(firestoreId: String, description: String, skillLevel: String, phoneNumber: String, imageUrl: String)
 }
+

@@ -292,9 +292,7 @@ class EditPostFragment : Fragment() {
         val newSkillLevel = skillLevelSpinner.selectedItem.toString()
         val newPhoneNumber = phoneNumberEditText.text.toString()
 
-        // ✅ עדכון originalPost עם selectedImageUrl החדש
         originalPost = originalPost!!.copy(imageUrl = selectedImageUrl ?: originalPost!!.imageUrl)
-        Log.d("EditPostFragment", "updatePost - originalPost imageUrl: ${originalPost!!.imageUrl}")
 
         val updatedPost = originalPost!!.copy(
             description = newDescription.ifEmpty { originalPost!!.description },
@@ -305,9 +303,16 @@ class EditPostFragment : Fragment() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             val db = PostDatabase.getDatabase(requireContext())
-            db.postDao().updatePost(updatedPost)
+            db.postDao().updatePost(updatedPost)  // ✅ עדכון הפוסט ב-Room
 
             if (!firestoreId.isNullOrEmpty()) {
+                db.postDao().updatePostByFirestoreId(
+                    firestoreId!!,
+                    updatedPost.description,
+                    updatedPost.skillLevel,
+                    updatedPost.phoneNumber,
+                    updatedPost.imageUrl
+                )  //
                 FirebaseFirestore.getInstance().collection("posts").document(firestoreId!!)
                     .update(
                         "description", updatedPost.description,
