@@ -3,6 +3,7 @@ package com.example.skill_swap_app.view
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -102,9 +103,25 @@ class PhotoListFragment : Fragment() {
     }
 
     private fun onPhotoSelected(photo: Photo) {
+        val previousFragment = arguments?.getString("previousFragment", "AddPostFragment")
         val bundle = Bundle().apply {
             putString("selectedImageUrl", photo.urls.regular)
+            putString("previousFragment", previousFragment)
+            putString("firestoreId", arguments?.getString("firestoreId")) // ✅ שמור את ה-ID של הפוסט
         }
-        findNavController().navigate(R.id.action_photoListFragment_to_addPostFragment, bundle)
+
+        Log.d("PhotoListFragment", "Navigating back to $previousFragment with image: ${photo.urls.regular}")
+
+        if (previousFragment == "EditPostFragment") {
+            findNavController().navigate(R.id.action_photoListFragment_to_editPostFragment, bundle)
+        } else {
+            findNavController().navigate(R.id.action_photoListFragment_to_addPostFragment, bundle)
+        }
     }
+
+
+
+
+
+
 }

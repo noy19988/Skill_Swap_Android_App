@@ -51,20 +51,18 @@
         android:label="Edit Post"
         tools:layout="@layout/fragment_add_post">
         <argument
-            android:name="postId"
-            app:argType="integer"/>
+            android:name="firestoreId"
+            app:argType="string"/>
+        <argument
+            android:name="selectedImageUrl"
+            app:argType="string"
+            app:nullable="true"/> <!-- ✅ מאפשר קבלת תמונה מ- PhotoListFragment -->
         <action
             android:id="@+id/action_editPostFragment_to_feedFragment"
             app:destination="@id/feedFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/editDeletePostFragment"
-        android:name="com.example.skill_swap_app.view.EditDeletePostFragment"
-        android:label="Edit or Delete Post">
-        <argument
-            android:name="postId"
-            app:argType="integer"/>
+        <action
+            android:id="@+id/action_editPostFragment_to_photoListFragment"
+            app:destination="@id/photoListFragment" />
     </fragment>
 
     <fragment
@@ -72,6 +70,10 @@
         android:name="com.example.skill_swap_app.view.AddPostFragment"
         android:label="Add Post"
         tools:layout="@layout/fragment_add_post">
+        <argument
+            android:name="selectedImageUrl"
+            app:argType="string"
+            app:nullable="true"/> <!-- ✅ מאפשר קבלת תמונה מ- PhotoListFragment -->
         <action
             android:id="@+id/action_addPostFragment_to_feedFragment"
             app:destination="@id/feedFragment" />
@@ -95,9 +97,6 @@
         android:name="com.example.skill_swap_app.view.MyPostsFragment"
         android:label="My Posts"
         tools:layout="@layout/fragment_my_posts">
-        <action
-            android:id="@+id/action_myPostsFragment_to_editDeletePostFragment"
-            app:destination="@id/editDeletePostFragment" />
     </fragment>
 
     <fragment
@@ -111,9 +110,17 @@
         android:name="com.example.skill_swap_app.view.PhotoListFragment"
         android:label="Unsplash Photos"
         tools:layout="@layout/fragment_photo_list">
+        <argument
+            android:name="previousFragment"
+            app:argType="string"
+            app:nullable="true"/> <!-- ✅ מאפשר לדעת מאיפה הגענו -->
         <action
             android:id="@+id/action_photoListFragment_to_addPostFragment"
             app:destination="@id/addPostFragment" />
+        <action
+            android:id="@+id/action_photoListFragment_to_editPostFragment"
+            app:destination="@id/editPostFragment" />
     </fragment>
+
 
 </navigation>

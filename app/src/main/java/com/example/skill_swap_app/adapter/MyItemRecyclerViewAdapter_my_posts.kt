@@ -38,7 +38,6 @@ class MyItemRecyclerViewAdapter_my_posts(
         holder.itemView.setOnClickListener {
             val bundle = Bundle()
             bundle.putInt("postId", item.id)
-            holder.itemView.findNavController().navigate(R.id.action_myPostsFragment_to_editDeletePostFragment, bundle)
         }
     }
 

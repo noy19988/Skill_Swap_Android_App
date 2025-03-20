@@ -24,6 +24,7 @@ import com.example.skill_swap_app.adapter.MyItemRecyclerViewAdapter_feed
 import com.example.skill_swap_app.model.Post
 import com.example.skill_swap_app.model.PostDatabase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,7 +35,8 @@ class FeedFragment : Fragment() {
     private lateinit var spinner: Spinner
     private lateinit var searchView: SearchView
     private lateinit var profileImageViewHeader: ImageView
-
+    private lateinit var recyclerView: RecyclerView
+    private var firestoreListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,20 +71,13 @@ class FeedFragment : Fragment() {
 
         searchView = view.findViewById(R.id.searchView)
 
-        val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view)
+        recyclerView = view.findViewById(R.id.recycler_view)
         recyclerView.layoutManager = when {
             columnCount <= 1 -> LinearLayoutManager(context)
             else -> GridLayoutManager(context, columnCount)
         }
 
-        loadPosts(spinner.selectedItem.toString()) { posts ->
-            if (posts.isEmpty()) {
-                recyclerView.visibility = View.GONE
-            } else {
-                recyclerView.visibility = View.VISIBLE
-                recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList())
-            }
-        }
+        setupFirestoreListener(spinner.selectedItem.toString())
 
         val addPostButton: ImageButton = view.findViewById(R.id.add_post_button)
         addPostButton.setOnClickListener {
@@ -91,9 +86,7 @@ class FeedFragment : Fragment() {
 
         spinner.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                loadPosts(spinner.selectedItem.toString()) { posts ->
-                    recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList())
-                }
+                setupFirestoreListener(spinner.selectedItem.toString())
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -114,6 +107,64 @@ class FeedFragment : Fragment() {
         return view
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        firestoreListener?.remove()
+    }
+
+    private fun setupFirestoreListener(skillLevel: String) {
+        firestoreListener?.remove()
+        val firestore = FirebaseFirestore.getInstance()
+        val query = if (skillLevel == "All") {
+            firestore.collection("posts")
+        } else {
+            firestore.collection("posts").whereEqualTo("skillLevel", skillLevel)
+        }
+
+        firestoreListener = query.addSnapshotListener { snapshots, e ->
+            if (e != null) {
+                Log.e("FeedFragment", "Listen failed.", e)
+                return@addSnapshotListener
+            }
+
+            if (snapshots != null) {
+                val posts = snapshots.documents.map { document ->
+                    val userIdValue = document.get("userId")
+                    val userId = when (userIdValue) {
+                        is Number -> userIdValue.toInt()
+                        is String -> userIdValue.toIntOrNull() ?: 0
+                        else -> 0
+                    }
+
+                    val favoritedByUsers = (document.get("favoritedByUsers") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
+
+                    Post(
+                        id = 0,
+                        description = document.getString("description") ?: "",
+                        skillLevel = document.getString("skillLevel") ?: "",
+                        phoneNumber = document.getString("phoneNumber") ?: "",
+                        imageUrl = document.getString("imageUrl") ?: "",
+                        userId = userId,
+                        favoritedByUsers = favoritedByUsers,
+                        firestoreId = document.id
+                    )
+                }
+
+                Log.d("FeedFragment", "Loaded ${posts.size} posts from Firestore")
+                updateRecyclerView(posts)
+            }
+        }
+    }
+
+
+    private fun updateRecyclerView(posts: List<Post>) {
+        if (posts.isEmpty()) {
+            recyclerView.visibility = View.GONE
+        } else {
+            recyclerView.visibility = View.VISIBLE
+            recyclerView.adapter = MyItemRecyclerViewAdapter_feed(posts.toMutableList())
+        }
+    }
 
     private fun loadCurrentUserProfileImage() {
         val sharedPreferences = requireContext().getSharedPreferences("user_data", Context.MODE_PRIVATE)
@@ -143,45 +194,6 @@ class FeedFragment : Fragment() {
             profileImageViewHeader.setImageResource(R.drawable.default_profile_picture)
         }
     }
-
-
-    private fun loadPosts(skillLevel: String, callback: (List<Post>) -> Unit) {
-        val firestore = FirebaseFirestore.getInstance()
-        val query = if (skillLevel == "All") {
-            firestore.collection("posts")
-        } else {
-            firestore.collection("posts").whereEqualTo("skillLevel", skillLevel)
-        }
-
-        query.get().addOnSuccessListener { documents ->
-            val posts = documents.map { document ->
-                val userIdValue = document.get("userId") // מקבל את הערך כפי שהוא בפועל
-                val userId = when (userIdValue) {
-                    is Number -> userIdValue.toInt() // אם זה מספר, להמיר ל-Int
-                    is String -> userIdValue.toIntOrNull() ?: 0 // אם זה String, להמיר ל-Int
-                    else -> 0 // אם זה לא מספר ולא String, ברירת מחדל 0
-                }
-
-                Post(
-                    id = 0,  // Firestore לא משתמש ב-ID של Room
-                    description = document.getString("description") ?: "",
-                    skillLevel = document.getString("skillLevel") ?: "",
-                    phoneNumber = document.getString("phoneNumber") ?: "",
-                    imageUrl = document.getString("imageUrl") ?: "",
-                    userId = userId, // המשתנה המעודכן
-                    isFavorite = false,
-                    favoritedByUserId = null,
-                    firestoreId = document.id
-                )
-            }
-            callback(posts)
-        }.addOnFailureListener { exception ->
-            Log.e("FeedFragment", "Error loading posts from Firestore", exception)
-            callback(emptyList())
-        }
-    }
-
-
 
     private fun filterPosts(query: String?, recyclerView: RecyclerView) {
         lifecycleScope.launch {

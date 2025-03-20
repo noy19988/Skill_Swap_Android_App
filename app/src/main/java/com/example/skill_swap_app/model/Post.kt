@@ -2,6 +2,7 @@ package com.example.skill_swap_app.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 
 @Entity(tableName = "posts")
 data class Post(
@@ -12,7 +13,11 @@ data class Post(
     val phoneNumber: String,
     val imageUrl: String,
     val userId: Int,
-    var isFavorite: Boolean = false,
-    var favoritedByUserId: Int? = null,
-    val firestoreId: String? = null
-)
+    val firestoreId: String? = null,
+
+    @TypeConverters(Converters::class)
+    var favoritedByUsers: List<String> = emptyList()
+
+){
+    constructor() : this(0, "", "", "", "", 0, null, emptyList()) // ✅ קונסטרקטור ריק
+}

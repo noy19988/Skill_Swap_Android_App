@@ -23,12 +23,15 @@ interface PostDao {
     @Query("SELECT * FROM posts WHERE id = :postId")
     suspend fun getPostById(postId: Int): Post
 
+    @Query("SELECT favoritedByUsers FROM posts WHERE id = :postId")
+    suspend fun getFavoritedByUsers(postId: Int): List<String>
+
+    // ✅ שליפת כל הפוסטים שהמשתמש סימן כמועדפים (תואם SQLite רגיל)
+    @Query("SELECT * FROM posts WHERE favoritedByUsers LIKE '%' || :userEmail || '%'")
+    suspend fun getFavoritePosts(userEmail: String): List<Post>
 
     @Update
     suspend fun updatePost(post: Post)
-
-    @Query("SELECT * FROM posts WHERE isFavorite = 1 AND favoritedByUserId = :userId")
-    suspend fun getFavoritePosts(userId: Int): List<Post>
 
     @Query("DELETE FROM posts WHERE id = :postId")
     suspend fun deletePost(postId: Int)

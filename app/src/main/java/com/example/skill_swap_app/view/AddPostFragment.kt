@@ -84,7 +84,10 @@ class AddPostFragment : Fragment() {
         }
 
         uploadImageFromUnsplashButton.setOnClickListener {
-            findNavController().navigate(R.id.action_addPostFragment_to_photoListFragment)
+            val bundle = Bundle().apply {
+                putString("previousFragment", "AddPostFragment")
+            }
+            findNavController().navigate(R.id.action_addPostFragment_to_photoListFragment, bundle)
         }
 
         postButton.setOnClickListener {

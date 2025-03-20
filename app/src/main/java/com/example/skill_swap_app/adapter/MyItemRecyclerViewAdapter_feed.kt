@@ -18,6 +18,7 @@ import com.example.skill_swap_app.databinding.ItemPostBinding
 import com.example.skill_swap_app.model.Post
 import com.example.skill_swap_app.model.PostDao
 import com.example.skill_swap_app.utils.CloudinaryManager
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CoroutineScope
@@ -35,10 +36,14 @@ class MyItemRecyclerViewAdapter_feed(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = values[position]
+        val userEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
+        Log.d("FeedAdapter", "Binding post: ID=${item.id}, FirestoreID=${item.firestoreId}, Desc=${item.description}")
+
 
         holder.descriptionTextView.text = item.description
         holder.skillLevelTextView.text = item.skillLevel
         holder.phoneNumberTextView.text = item.phoneNumber
+
 
         Glide.with(holder.itemView.context)
             .load(item.imageUrl)
@@ -46,27 +51,26 @@ class MyItemRecyclerViewAdapter_feed(
 
         val currentUserId = getCurrentUserId(holder.itemView.context) ?: 0
 
-        holder.mainCheckBox.setOnCheckedChangeListener(null)
-
-        holder.mainCheckBox.isChecked = item.isFavorite && item.favoritedByUserId == currentUserId
+        // ✅ עדכון מצב ה-Checkbox לפי הנתונים העדכניים מה-Firestore
+        holder.mainCheckBox.setOnCheckedChangeListener(null) // מניעת loop
+        holder.mainCheckBox.isChecked = item.favoritedByUsers.contains(userEmail)
 
         holder.mainCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            item.isFavorite = isChecked
-            item.favoritedByUserId = if (isChecked) currentUserId else null
-
-            Log.d("FeedAdapter", "Updating post ${item.id} - isFavorite: $isChecked, favoritedByUserId: ${item.favoritedByUserId}")
-
-            val firestore = FirebaseFirestore.getInstance()
-            firestore.collection("posts").document(item.firestoreId ?: "default_id")
-                .update("isFavorite", item.isFavorite, "favoritedByUserId", item.favoritedByUserId)
-                .addOnSuccessListener {
-                    Log.d("FeedAdapter", "Post updated in Firestore: ${item.firestoreId}")
+            if (isChecked) {
+                if (!item.favoritedByUsers.contains(userEmail)) {
+                    item.favoritedByUsers = item.favoritedByUsers + userEmail
                 }
-                .addOnFailureListener { exception ->
-                    Log.e("FeedAdapter", "Error updating post in Firestore", exception)
-                }
+            } else {
+                item.favoritedByUsers = item.favoritedByUsers.filter { it != userEmail }
+            }
 
+
+            Log.d("FeedAdapter", "Updating post ${item.firestoreId} - favoritedByUsers: ${item.favoritedByUsers}")
+
+            updateFavoriteStatusInFirestore(item)
         }
+
+
         loadProfileImage(item.userId, holder.profileImageView, holder.itemView.context)
 
         // הוספת תפריט אפשרויות
@@ -116,10 +120,12 @@ class MyItemRecyclerViewAdapter_feed(
                         }
                         R.id.action_edit -> {
                             val bundle = Bundle()
-                            bundle.putInt("postId", item.id)
+                            bundle.putString("firestoreId", item.firestoreId) // 🔥 מעביר `firestoreId` כ-String
+                            Log.d("FeedAdapter", "Navigating to EditPostFragment with firestoreId=${item.firestoreId}")
 
                             val navController = androidx.navigation.Navigation.findNavController(holder.itemView)
                             navController.navigate(R.id.action_feedFragment_to_editPostFragment, bundle)
+
 
                             true
                         }
@@ -146,10 +152,29 @@ class MyItemRecyclerViewAdapter_feed(
         val optionsButton: android.widget.ImageButton = binding.optionsButton
     }
 
+
+
     private fun getCurrentUserId(context: Context): Int? {
         val sharedPreferences = context.getSharedPreferences("user_data", Context.MODE_PRIVATE)
         return sharedPreferences.getInt("user_id", -1).takeIf { it != -1 }
     }
+
+
+    private fun updateFavoriteStatusInFirestore(post: Post) {
+        val firestore = FirebaseFirestore.getInstance()
+        val postRef = firestore.collection("posts").document(post.firestoreId ?: return)
+
+        Log.d("FeedAdapter", "Updating post in Firestore: ${post.firestoreId}, New favoritedByUsers: ${post.favoritedByUsers}")
+
+        postRef.update("favoritedByUsers", post.favoritedByUsers)
+            .addOnSuccessListener {
+                Log.d("FeedAdapter", "Post updated successfully in Firestore: ${post.firestoreId}")
+            }
+            .addOnFailureListener { exception ->
+                Log.e("FeedAdapter", "Error updating post in Firestore", exception)
+            }
+    }
+
 
     private fun loadProfileImage(userId: Int, imageView: ImageView, context: Context) {
         val firestore = FirebaseFirestore.getInstance()
@@ -162,8 +187,9 @@ class MyItemRecyclerViewAdapter_feed(
                         Log.d("FeedAdapter", "Loading profile image from: $profileImageUrl")
                         Glide.with(context)
                             .load(profileImageUrl)
+                            .placeholder(R.drawable.default_profile_picture) // תמונת placeholder
+                            .error(R.drawable.default_profile_picture) // תמונת שגיאה
                             .into(imageView)
-                            .onLoadFailed(ContextCompat.getDrawable(context, R.drawable.default_profile_picture))
                     } else {
                         Log.w("FeedAdapter", "Profile image URL is empty for user: $userId")
                         imageView.setImageResource(R.drawable.default_profile_picture)
@@ -178,6 +204,7 @@ class MyItemRecyclerViewAdapter_feed(
                 imageView.setImageResource(R.drawable.default_profile_picture)
             }
     }
+
 
     /*private fun deletePostFromRoom(postId: Int) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -196,6 +223,7 @@ class MyItemRecyclerViewAdapter_feed(
                 Log.e("FeedAdapter", "Error deleting post image from Storage", exception)
             }
     }
+
 
     private fun deleteImageFromCloudinary(imageUrl: String, context: Context) {
         val publicId = extractPublicIdFromUrl(imageUrl)
@@ -217,6 +245,8 @@ class MyItemRecyclerViewAdapter_feed(
         return matchResult?.groupValues?.get(1)
     }
 
+
+
     private fun deletePostFromFirestore(postId: String) {
         FirebaseFirestore.getInstance().collection("posts").document(postId)
             .delete()
@@ -228,3 +258,4 @@ class MyItemRecyclerViewAdapter_feed(
             }
     }
 }
+
