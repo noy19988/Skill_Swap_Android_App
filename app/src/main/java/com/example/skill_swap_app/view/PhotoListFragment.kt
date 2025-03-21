@@ -26,7 +26,7 @@ class PhotoListFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: PhotoAdapter
-    private var currentQuery = "nature"
+    private var currentQuery = "jobs"
     private val apiService = RetrofitInstance.retrofitInstance.create(UnsplashApiService::class.java)
     private var currentPage = 1
 
@@ -118,10 +118,6 @@ class PhotoListFragment : Fragment() {
             findNavController().navigate(R.id.action_photoListFragment_to_addPostFragment, bundle)
         }
     }
-
-
-
-
 
 
 }

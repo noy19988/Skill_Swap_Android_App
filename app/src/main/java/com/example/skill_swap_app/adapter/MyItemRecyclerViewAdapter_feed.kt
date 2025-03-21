@@ -1,22 +1,27 @@
 package com.example.skill_swap_app.adapter
 
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.databinding.ItemPostBinding
 import com.example.skill_swap_app.model.Post
 import com.example.skill_swap_app.model.PostDao
+import com.example.skill_swap_app.model.PostDatabase
 import com.example.skill_swap_app.utils.CloudinaryManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,22 +42,19 @@ class MyItemRecyclerViewAdapter_feed(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = values[position]
         val userEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
-        Log.d("FeedAdapter", "Binding post: ID=${item.id}, FirestoreID=${item.firestoreId}, Desc=${item.description}")
 
+        Log.d("FeedAdapter", "Binding post: ID=${item.id}, FirestoreID=${item.firestoreId}, Desc=${item.description}")
 
         holder.descriptionTextView.text = item.description
         holder.skillLevelTextView.text = item.skillLevel
         holder.phoneNumberTextView.text = item.phoneNumber
 
-
         Glide.with(holder.itemView.context)
             .load(item.imageUrl)
+            .placeholder(R.drawable.placeholder_image)
             .into(holder.imageView)
 
-        val currentUserId = getCurrentUserId(holder.itemView.context) ?: 0
-
-        // ✅ עדכון מצב ה-Checkbox לפי הנתונים העדכניים מה-Firestore
-        holder.mainCheckBox.setOnCheckedChangeListener(null) // מניעת loop
+        holder.mainCheckBox.setOnCheckedChangeListener(null)
         holder.mainCheckBox.isChecked = item.favoritedByUsers.contains(userEmail)
 
         holder.mainCheckBox.setOnCheckedChangeListener { _, isChecked ->
@@ -64,18 +66,14 @@ class MyItemRecyclerViewAdapter_feed(
                 item.favoritedByUsers = item.favoritedByUsers.filter { it != userEmail }
             }
 
-
             Log.d("FeedAdapter", "Updating post ${item.firestoreId} - favoritedByUsers: ${item.favoritedByUsers}")
-
             updateFavoriteStatusInFirestore(item)
         }
-
-
+        Glide.with(holder.itemView.context).clear(holder.profileImageView)
         loadProfileImage(item.userId, holder.profileImageView, holder.itemView.context)
 
-        // הוספת תפריט אפשרויות
-        if (item.userId == currentUserId) {
-            holder.optionsButton.visibility = android.view.View.VISIBLE
+        if (item.userId == getCurrentUserId(holder.itemView.context)) {
+            holder.optionsButton.visibility = View.VISIBLE
             holder.optionsButton.setOnClickListener {
                 val popup = PopupMenu(holder.itemView.context, holder.optionsButton)
                 popup.menuInflater.inflate(R.menu.post_options_menu, popup.menu)
@@ -84,8 +82,7 @@ class MyItemRecyclerViewAdapter_feed(
                         R.id.action_delete -> {
                             val context = holder.itemView.context
 
-                            // יצירת דיאלוג אישור מחיקה
-                            android.app.AlertDialog.Builder(context)
+                            AlertDialog.Builder(context)
                                 .setTitle("Confirm Deletion")
                                 .setMessage("Are you sure you want to delete this post?")
                                 .setPositiveButton("Yes") { _, _ ->
@@ -93,39 +90,34 @@ class MyItemRecyclerViewAdapter_feed(
 
                                     if (!item.firestoreId.isNullOrEmpty()) {
                                         deletePostFromFirestore(item.firestoreId)
-                                        /*
-                                                                                deletePostFromRoom(item.id)
-                                        */
+                                        deletePostFromRoom(item.firestoreId, holder.itemView.context)
+
                                         if (item.imageUrl.startsWith("gs://") || item.imageUrl.startsWith("https://firebasestorage.googleapis.com/")) {
                                             deletePostFromStorage(item.imageUrl)
                                         } else {
                                             deleteImageFromCloudinary(item.imageUrl, context)
                                         }
 
-                                        // מחיקה מהרשימה ועדכון ה-RecyclerView
                                         values.removeAt(position)
                                         notifyItemRemoved(position)
 
-                                        // הצגת הודעה למשתמש שהמחיקה הצליחה
                                         Toast.makeText(context, "Post deleted successfully!", Toast.LENGTH_SHORT).show()
                                     } else {
                                         Log.e("FeedAdapter", "firestoreId is null or empty for post ${item.id}")
                                         Toast.makeText(context, "Failed to delete post. firestoreId is missing.", Toast.LENGTH_SHORT).show()
                                     }
                                 }
-                                .setNegativeButton("Cancel", null) // אם המשתמש לוחץ על ביטול - לא עושה כלום
+                                .setNegativeButton("Cancel", null)
                                 .show()
-
                             true
                         }
                         R.id.action_edit -> {
                             val bundle = Bundle()
-                            bundle.putString("firestoreId", item.firestoreId) // 🔥 מעביר `firestoreId` כ-String
+                            bundle.putString("firestoreId", item.firestoreId)
                             Log.d("FeedAdapter", "Navigating to EditPostFragment with firestoreId=${item.firestoreId}")
 
-                            val navController = androidx.navigation.Navigation.findNavController(holder.itemView)
+                            val navController = Navigation.findNavController(holder.itemView)
                             navController.navigate(R.id.action_feedFragment_to_editPostFragment, bundle)
-
 
                             true
                         }
@@ -135,10 +127,9 @@ class MyItemRecyclerViewAdapter_feed(
                 popup.show()
             }
         } else {
-            holder.optionsButton.visibility = android.view.View.GONE
+            holder.optionsButton.visibility = View.GONE
         }
     }
-
 
     override fun getItemCount(): Int = values.size
 
@@ -149,16 +140,13 @@ class MyItemRecyclerViewAdapter_feed(
         val imageView: ImageView = binding.imageView
         val mainCheckBox: CheckBox = binding.root.findViewById(R.id.mainCheckBox)
         val profileImageView: ImageView = binding.profileImageView
-        val optionsButton: android.widget.ImageButton = binding.optionsButton
+        val optionsButton: ImageButton = binding.optionsButton
     }
-
-
 
     private fun getCurrentUserId(context: Context): Int? {
         val sharedPreferences = context.getSharedPreferences("user_data", Context.MODE_PRIVATE)
         return sharedPreferences.getInt("user_id", -1).takeIf { it != -1 }
     }
-
 
     private fun updateFavoriteStatusInFirestore(post: Post) {
         val firestore = FirebaseFirestore.getInstance()
@@ -175,27 +163,31 @@ class MyItemRecyclerViewAdapter_feed(
             }
     }
 
-
     private fun loadProfileImage(userId: Int, imageView: ImageView, context: Context) {
         val firestore = FirebaseFirestore.getInstance()
-        firestore.collection("users").whereEqualTo("id", userId).get()
+
+        firestore.collection("users")
+            .whereEqualTo("id", userId)
+            .limit(1)
+            .get()
             .addOnSuccessListener { documents ->
-                if (documents.size() > 0) {
+                if (!documents.isEmpty) {
                     val userDocument = documents.documents[0]
                     val profileImageUrl = userDocument.getString("profileImageUrl")
+
                     if (!profileImageUrl.isNullOrEmpty()) {
-                        Log.d("FeedAdapter", "Loading profile image from: $profileImageUrl")
+                        // ✅ נטען את התמונה מה-URL של המשתמש
                         Glide.with(context)
                             .load(profileImageUrl)
-                            .placeholder(R.drawable.default_profile_picture) // תמונת placeholder
-                            .error(R.drawable.default_profile_picture) // תמונת שגיאה
+                            .placeholder(R.drawable.default_profile_picture)
+                            .error(R.drawable.default_profile_picture)
                             .into(imageView)
                     } else {
-                        Log.w("FeedAdapter", "Profile image URL is empty for user: $userId")
+                        // 🟡 אם אין תמונה בפרופיל - נטען ברירת מחדל
                         imageView.setImageResource(R.drawable.default_profile_picture)
                     }
                 } else {
-                    Log.w("FeedAdapter", "User document not found for user: $userId")
+                    // ❌ אם לא נמצא משתמש בכלל עם ה-ID הזה
                     imageView.setImageResource(R.drawable.default_profile_picture)
                 }
             }
@@ -204,6 +196,10 @@ class MyItemRecyclerViewAdapter_feed(
                 imageView.setImageResource(R.drawable.default_profile_picture)
             }
     }
+
+
+
+
 
 
     private fun deletePostFromStorage(imageUrl: String) {
@@ -216,7 +212,6 @@ class MyItemRecyclerViewAdapter_feed(
                 Log.e("FeedAdapter", "Error deleting post image from Storage", exception)
             }
     }
-
 
     private fun deleteImageFromCloudinary(imageUrl: String, context: Context) {
         val publicId = extractPublicIdFromUrl(imageUrl)
@@ -239,6 +234,18 @@ class MyItemRecyclerViewAdapter_feed(
     }
 
 
+    private fun deletePostFromRoom(firestoreId: String, context: Context) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = PostDatabase.getDatabase(context)
+                db.postDao().deletePostByFirestoreId(firestoreId)
+                Log.d("FeedAdapter", "Post deleted from Room DB: $firestoreId")
+            } catch (e: Exception) {
+                Log.e("FeedAdapter", "Error deleting post from Room DB", e)
+            }
+        }
+    }
+
 
     private fun deletePostFromFirestore(postId: String) {
         FirebaseFirestore.getInstance().collection("posts").document(postId)
@@ -251,4 +258,5 @@ class MyItemRecyclerViewAdapter_feed(
             }
     }
 }
+
 

@@ -94,7 +94,7 @@ class ProfileFragment : Fragment() {
                 updateUserInFirestore(it.email, finalUsername, finalPhone, finalImageUrl)
             }
 
-            disableEditing() // חזרה לתצוגה הרגילה לאחר שמירה
+            disableEditing()
         }
 
 
@@ -106,7 +106,6 @@ class ProfileFragment : Fragment() {
         val usernameParent = usernameTextView.parent as ViewGroup
         val phoneParent = phoneTextView.parent as ViewGroup
 
-        // מחיקת TextView והוספת EditText
         usernameParent.removeView(usernameTextView)
         phoneParent.removeView(phoneTextView)
 
@@ -213,7 +212,6 @@ class ProfileFragment : Fragment() {
                         Glide.with(requireContext()).load(profileImageUrl).into(profileImageView)
                     }
 
-                    // שמירת הנתונים ב-SharedPreferences כדי שלא יאבדו בחידוש של האפליקציה
                     val sharedPreferences = requireActivity().getSharedPreferences("user_data", Context.MODE_PRIVATE)
                     with(sharedPreferences.edit()) {
                         putString("username", username)
@@ -222,7 +220,6 @@ class ProfileFragment : Fragment() {
                         apply()
                     }
 
-                    // עדכון הנתונים גם ב-Room
                     saveUserToRoom(user!!)
                 } else {
                     Log.e("ProfileFragment", "User not found in Firestore")
@@ -238,7 +235,7 @@ class ProfileFragment : Fragment() {
             try {
                 val existingUser = db.userDao().getUserByEmail(user.email)
                 if (existingUser == null) {
-                    db.userDao().insertUser(user) // הכנסת משתמש חדש
+                    db.userDao().insertUser(user)
                     Log.d("ProfileFragment", "User inserted into Room: ${user.email}")
                 } else {
                     db.userDao().updateUserProfile(existingUser.id, user.username, user.phone, user.profileImageUrl ?: "")
@@ -255,12 +252,15 @@ class ProfileFragment : Fragment() {
         progressBar.visibility = View.VISIBLE
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val uploadedUrl = cloudinaryManager.uploadImage(uri)
+                val uploadedUrl = cloudinaryManager.uploadImage(uri) // URL תקין?
+                Log.d("Cloudinary", "Uploaded image URL: $uploadedUrl") // ✅ בדיקה - האם זה URL תקין?
+
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
-                    if (!uploadedUrl.isNullOrEmpty()) {
+                    if (!uploadedUrl.isNullOrEmpty() && uploadedUrl.startsWith("http")) {
                         updateUserInFirestore(user?.email ?: return@withContext, user?.username ?: "", user?.phone ?: "", uploadedUrl)
                     } else {
+                        Log.e("Cloudinary", "Invalid URL from Cloudinary: $uploadedUrl")
                         Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -274,24 +274,33 @@ class ProfileFragment : Fragment() {
         }
     }
 
+
+
     private fun updateUserInFirestore(email: String, username: String, phone: String, imageUrl: String?) {
         val firestore = FirebaseFirestore.getInstance()
         val userMap = mutableMapOf<String, Any>()
 
         if (username.isNotEmpty()) userMap["username"] = username
         if (phone.isNotEmpty()) userMap["phone"] = phone
-        if (!imageUrl.isNullOrEmpty()) userMap["profileImageUrl"] = imageUrl
+        if (!imageUrl.isNullOrEmpty() && imageUrl.startsWith("http")) {
+            userMap["profileImageUrl"] = imageUrl
+        } else {
+            Log.e("ProfileFragment", "Skipping invalid profileImageUrl: $imageUrl")
+        }
+
+        Log.d("ProfileFragment", "Updating Firestore with: $userMap") // ✅ בדוק בדיוק מה נשלח לפיירבייס
 
         firestore.collection("users").document(email)
             .update(userMap)
             .addOnSuccessListener {
-                getUserFromFirestore(email)  // ✅ עדכון הנתונים מהשרת
-                Toast.makeText(requireContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show() // ✅ הודעה למשתמש
+                getUserFromFirestore(email)
+                Toast.makeText(requireContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
                 Toast.makeText(requireContext(), "Failed to update profile. Please try again.", Toast.LENGTH_SHORT).show()
             }
     }
+
 
 
     private fun deleteUser() {
@@ -303,10 +312,10 @@ class ProfileFragment : Fragment() {
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     user?.let {
-                        db.userDao().deleteUserById(it.id)  // מחיקת המשתמש מ-Room
-                        FirebaseFirestore.getInstance().collection("users").document(it.email).delete() // מחיקת המשתמש מ-Firestore
+                        db.userDao().deleteUserById(it.id)
+                        FirebaseFirestore.getInstance().collection("users").document(it.email).delete()
 
-                        FirebaseAuth.getInstance().currentUser?.delete() // מחיקת המשתמש מה-Authentication
+                        FirebaseAuth.getInstance().currentUser?.delete()
                     }
 
                     withContext(Dispatchers.Main) {

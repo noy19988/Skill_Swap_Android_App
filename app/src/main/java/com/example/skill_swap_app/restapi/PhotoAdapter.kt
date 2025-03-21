@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.skill_swap_app.R
 
-// PhotoAdapter
 class PhotoAdapter(private var photos: List<Photo>, val onItemSelected: (Photo) -> Unit) :
     RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
 

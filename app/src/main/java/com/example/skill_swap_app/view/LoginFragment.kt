@@ -12,9 +12,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.skill_swap_app.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+
 
 class LoginFragment : Fragment() {
 

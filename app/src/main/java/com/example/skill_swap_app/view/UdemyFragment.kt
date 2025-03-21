@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.skill_swap_app.R
 import com.example.skill_swap_app.adapter.UdemyCoursesAdapter
-import com.example.skill_swap_app.model.Course
 import com.example.skill_swap_app.repository.UdemyRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

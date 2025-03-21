@@ -115,9 +115,6 @@ class FavoritesFragment : Fragment() {
     }
 
 
-
-
-
     companion object {
         const val ARG_COLUMN_COUNT = "column-count"
 

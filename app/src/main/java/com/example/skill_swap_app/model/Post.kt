@@ -19,5 +19,5 @@ data class Post(
     var favoritedByUsers: List<String> = emptyList()
 
 ){
-    constructor() : this(0, "", "", "", "", 0, null, emptyList()) // ✅ קונסטרקטור ריק
+    constructor() : this(0, "", "", "", "", 0, null, emptyList())
 }

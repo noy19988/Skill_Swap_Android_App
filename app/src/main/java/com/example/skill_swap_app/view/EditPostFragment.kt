@@ -248,13 +248,6 @@ class EditPostFragment : Fragment() {
 
 
 
-
-
-
-
-
-
-
     private fun getRealPathFromURI(uri: Uri): String? {
         val contentResolver = requireContext().contentResolver
         val cursor = contentResolver.query(uri, null, null, null, null)

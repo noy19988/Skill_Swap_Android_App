@@ -22,7 +22,8 @@ class MyItemRecyclerViewAdapter_favorites(
         return ViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun
+            onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = values[position]
 
         holder.descriptionTextView.text = item.description
